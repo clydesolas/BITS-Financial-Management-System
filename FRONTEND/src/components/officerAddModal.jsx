@@ -15,7 +15,7 @@ const OfficerAddModal = ({ onAddOfficer }) => {
       middleName: '',
       lastName: '',
       role: '',
-      status:'',
+      status:'ACTIVE',
       password: '',
       generatedPassword: ' ',
     });
@@ -33,7 +33,7 @@ const OfficerAddModal = ({ onAddOfficer }) => {
         ...prevFormData,
         password: generatedPassword,
         generatedPassword: generatedPassword,
-        status: 'ACTIVE'
+        status:'ACTIVE'
       }));
     };
   
@@ -61,11 +61,12 @@ const OfficerAddModal = ({ onAddOfficer }) => {
             console.log('Officer added successfully');
             handleClose();
             setShowSuccessModal(true);
-            onAddOfficer();
+            onAddOfficer(); 
           }
           if (response.data === 'ID number already exists') {
             alert('ID number already exists');
           }
+         
         } catch (error) {
           console.error('Error adding officer:', error);
         }
@@ -80,8 +81,9 @@ const OfficerAddModal = ({ onAddOfficer }) => {
           middleName: '',
           lastName: '',
           role: '',
+          status: 'ACTIVE',
           password: '',
-          generatedPassword: '',
+          generatedPassword: ' ',
         });
       };
     
@@ -168,7 +170,6 @@ const OfficerAddModal = ({ onAddOfficer }) => {
                   type="hidden"
                   value={formData.generatedPassword}
                 />
-                
                 <Button variant="outline-secondary" onClick={handleTogglePasswordVisibility}>
                   {passwordVisible ? 'Hide' : 'Show'}
                 </Button>

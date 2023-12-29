@@ -15,7 +15,7 @@ const TransactionUpdateModal = ({
   return (
     <Modal show={showModal} onHide={handleCloseModal}>
       <Modal.Header className="container-bg2" closeButton style={{ color: 'white' }}>
-        <Modal.Title>Update</Modal.Title>
+        <Modal.Title>Updateee</Modal.Title>
       </Modal.Header>
       <Modal.Body className="container-bg2">
         {selectedRow && (
@@ -40,8 +40,8 @@ const TransactionUpdateModal = ({
                       onChange={(e) => handleInputChange('amount', parseFloat(e.target.value))}
                     />
                   </Form.Group>
-                  <Form.Group controlId="formTotal">
-                    <Form.Label>Date:</Form.Label>
+                  <Form.Group  className="mb-3" controlId="formTransactionDate">
+                    <Form.Label>Transaction Date:</Form.Label>
                     <Form.Control
                       type="date"
                       value={formValues.transactionDate || selectedRow.transactionDate}
