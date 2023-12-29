@@ -65,7 +65,7 @@ const OfficerAddModal = ({ onAddOfficer }) => {
           const response = await axios.post('http://localhost:8001/register', formData);
     
           if (response.data === 'Registered successfully!') {
-            // Send email
+            // Send emaill
             const emailData = {
               email: formData.email,
               subject: 'Account Registration',
