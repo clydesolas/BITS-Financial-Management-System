@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Form, Modal, InputGroup, FormControl } from 'react-bootstrap';
+import { Button, Form, Modal, InputGroup, FormControl, Spinner } from 'react-bootstrap';
 import axios from 'axios';
 import * as Icon from 'react-bootstrap-icons';
 
@@ -8,7 +8,10 @@ const OfficerAddModal = ({ onAddOfficer }) => {
     const [show, setShow] = useState(false);
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-  
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(null);
+
     const [formData, setFormData] = useState({
       idNumber: '',
       firstName: '',
@@ -16,6 +19,7 @@ const OfficerAddModal = ({ onAddOfficer }) => {
       lastName: '',
       role: '',
       status:'ACTIVE',
+      email: '',
       password: '',
       generatedPassword: ' ',
     });
@@ -48,25 +52,49 @@ const OfficerAddModal = ({ onAddOfficer }) => {
             formData.middleName === '' ||
             formData.lastName === '' ||
             formData.role === '' ||
-            formData.password === ''
+            formData.password === '' ||
+            formData.email === ''
         ) {
             alert('Please fill in all required fields.');
             return;
         }
         axios.defaults.withCredentials = true;
         try {
+          setLoading(true);
+    
           const response = await axios.post('http://localhost:8001/register', formData);
-      
+    
           if (response.data === 'Registered successfully!') {
-            console.log('Officer added successfully');
-            handleClose();
-            setShowSuccessModal(true);
-            onAddOfficer(); 
+            // Send email
+            const emailData = {
+              email: formData.email,
+              subject: 'Account Registration',
+              body: `<p>Hello ${formData.firstName}!</p>
+                  <p>Welcome to the financial management system. This is your account information:</p>
+                  <ul>
+                      <li>ID Number: <b>${formData.idNumber}</b></li>
+                      <li>Password: <b>${formData.generatedPassword}</b></li>
+                  </ul>
+                  <p>Please log in and change your temporary password immediately.</p>
+                  <p>Thank you!</p>`
+            };
+    
+            try {
+              await axios.post('http://localhost:8001/send-email', emailData);
+              handleClose();
+              setShowSuccessModal(true);
+              setSuccess(', the student will be notified through their email with their account login detail.')
+            } catch (emailError) {
+              console.error('Error sending email:', emailError);
+              setError(', but failed to send email. Please notify the student for their account details personally.');
+              setLoading(false);
+              handleClose();
+              setShowSuccessModal(true);
+            }
           }
           if (response.data === 'ID number already exists') {
             alert('ID number already exists');
           }
-         
         } catch (error) {
           console.error('Error adding officer:', error);
         }
@@ -82,12 +110,17 @@ const OfficerAddModal = ({ onAddOfficer }) => {
           lastName: '',
           role: '',
           status: 'ACTIVE',
+          email:'',
           password: '',
           generatedPassword: ' ',
         });
       };
     
-    const handleSuccessModalClose = () => setShowSuccessModal(false);
+    const handleSuccessModalClose = () => {
+      setShowSuccessModal(false);
+      setError(null);
+      setSuccess(null);
+    };
   
     return (
       <>
@@ -108,6 +141,16 @@ const OfficerAddModal = ({ onAddOfficer }) => {
                 placeholder="Student Number"
                 value={formData.idNumber}
                 onChange={(e) => handleInputChange('idNumber', e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="">
+              <Form.Label>Email:</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
                 required
               />
             </Form.Group>
@@ -183,14 +226,20 @@ const OfficerAddModal = ({ onAddOfficer }) => {
           </Form>
   
           <Modal.Footer>
-            <Button variant="light" onClick={handleClose}>
-              Close
-            </Button>
-            <Button variant="success" onClick={handleAddOfficer}>
-              Add
-            </Button>
-          </Modal.Footer>
-        </Modal>
+          <Button variant="light" onClick={handleClose}>
+            Close
+          </Button>
+          <Button variant="success" onClick={handleAddOfficer}>
+            {loading ? (
+              <>
+                Loading... <Spinner animation="border" variant="light" size="sm" />
+              </>
+            ) : (
+              'Add'
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
   
         {/* Success Modal */}
         <Modal show={showSuccessModal} onHide={handleSuccessModalClose} centered>
@@ -201,7 +250,10 @@ const OfficerAddModal = ({ onAddOfficer }) => {
             <h3 className="d-flex justify-content-center" style={{ color: 'green' }}>
               Success <Icon.Check2Circle />
             </h3>
-            <p className="d-flex justify-content-center">Officer added successfully.</p>
+            <p className="d-flex justify-content-center">Officer added successfully
+            {error && ({error}  )}
+            {success && ({success})}
+             </p>
           </Modal.Body>
           <Modal.Footer>
             <Button variant="success" onClick={handleSuccessModalClose}>

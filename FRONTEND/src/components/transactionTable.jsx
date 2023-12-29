@@ -205,10 +205,10 @@ const TransactionTable = () => {
       cell: (row) => (
         <>
         
-        <Button variant='link' size='sm' onClick={() => handleOpenTransactionVersionModal(row)}>
+        <Button variant='link' size='md' onClick={() => handleOpenTransactionVersionModal(row)}>
         <Icon.ClockHistory variant='dark'/>
       </Button>
-        <Button variant='link' size='sm' onClick={() => handleOpenModal(row)}>
+        <Button variant='link' size='md' onClick={() => handleOpenModal(row)}>
           <Icon.Pencil color='green' />
         </Button>
        
