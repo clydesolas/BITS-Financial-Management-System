@@ -94,6 +94,7 @@ const OfficerAddModal = ({ onAddOfficer }) => {
           }
           if (response.data === 'ID number already exists') {
             alert('ID number already exists');
+            setLoading(false);
           }
         } catch (error) {
           console.error('Error adding officer:', error);
@@ -114,6 +115,7 @@ const OfficerAddModal = ({ onAddOfficer }) => {
           password: '',
           generatedPassword: ' ',
         });
+        setLoading(false);
       };
     
     const handleSuccessModalClose = () => {
@@ -247,14 +249,16 @@ const OfficerAddModal = ({ onAddOfficer }) => {
             <Modal.Title>Success</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <h3 className="d-flex justify-content-center" style={{ color: 'green' }}>
-              Success <Icon.Check2Circle />
-            </h3>
-            <p className="d-flex justify-content-center">Officer added successfully
-            {error && ({error}  )}
-            {success && ({success})}
-             </p>
-          </Modal.Body>
+          <h3 className="d-flex justify-content-center" style={{ color: 'green' }}>
+            Success <Icon.Check2Circle />
+          </h3>
+          <p className="p-2">
+            Officer added successfully
+            {error && <span>{error}</span>}
+            {success && <span>{success}</span>}
+          </p>
+        </Modal.Body>
+
           <Modal.Footer>
             <Button variant="success" onClick={handleSuccessModalClose}>
               Close

@@ -24,7 +24,7 @@ function Officer() {
                 }`}
             >
                 <MainGreetings />
-                <Container>
+                <Container className="p-4 container-bg2 rounded-4">
                     <h4 className="d-flex justify-content-center">
                         Officer List
                     </h4>
