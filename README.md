@@ -50,6 +50,7 @@
   - Start and end date input for date range viewing.
   - Option to generate group reports as Excel.
   - Option to generate individual reports as PDF.
+  - Can see transactions' edit/update history
 
 ### Other Officers-Specific Features:
 
