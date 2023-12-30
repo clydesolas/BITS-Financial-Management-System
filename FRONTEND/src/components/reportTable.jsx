@@ -7,6 +7,7 @@ import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image } from '
 import pdfLogo from '../assets/img/pdfLogo.png';
 import * as Icon from 'react-bootstrap-icons';
 import '../assets/css/global.css';
+import coverImage from '../assets/img/cover.jpg';
 import TransactionVersionModal from './transactionVersionModal';
 
 const ReportTable = () => {
@@ -76,6 +77,15 @@ const ReportTable = () => {
     page: {
       flexDirection: 'row',
       backgroundColor: '#f0faf4',
+    },
+    backgroundImageContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundSize: 'cover',
+      opacity: 0.1,  // 50% opacity
     },
     section: {
       margin: 10,
@@ -185,15 +195,16 @@ const ReportTable = () => {
         <PDFDownloadLink document={
           <Document>
           <Page size={{ width: 420, height: 298 }} style={styles.page}>
+          <Image src={coverImage} style={styles.backgroundImageContainer} />
             <View style={styles.section}>
             <Image style={{width: '45px', height: '45px', margin: '15px 0 0 15px', padding: '0 0 0 0'}} src={pdfLogo}></Image>
             <Text style={{fontSize: '14px', fontWeight: 'bold' , marginTop: '-35px'}}>Builders of Innovative Technologist Society</Text>
             <Text style={styles.header}>{'INVOICE RECORD'}</Text>
             <Text style={styles.subtitle}>{'Transaction ID:     '+ row.transactionId}</Text>
-            <Text style={styles.subtitle}>{'Date:                   '+formatTransactionDate(row)}</Text>
-            <Text style={styles.subtitle}>{'Particular:           '+row.particular}</Text>
+            <Text style={styles.subtitle}>{'Date:                    '+formatTransactionDate(row)}</Text>
+            <Text style={styles.subtitle}>{'Particular:             '+row.particular}</Text>
             <Text style={styles.subtitle}>{'Amount:               PHP '+ Number(row.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
-            <Text style={styles.subtitle}>{'Quantity:             '+row.quantity}</Text>
+            <Text style={styles.subtitle}>{'Quantity:               '+row.quantity}</Text>
             <Text style={styles.subtitle}>{'Total:                    PHP '+ Number(row.total).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
             <Text style={styles.subtitle}>{'Remark:               '+row.remark}</Text>
           </View>
@@ -202,7 +213,7 @@ const ReportTable = () => {
           </View>
       </Page>
         </Document>}
-        fileName="somename.pdf">
+         fileName={`${row.transactionId}.pdf`}>
            {({ blob, url, loading, error }) =>
             loading ? 'Loading document...' : 
             <OverlayTrigger
