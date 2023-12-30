@@ -1,8 +1,5 @@
 # Financial Management System for BITS Organization at Cavite State University Imus - Campus
 
-## About
-
-The system is a comprehensive financial management platform designed to streamline and enhance the management of officers, transactions, and financial data within an organization. The system incorporates distinct features catering to different roles, ensuring efficient and secure operations for administrators, treasurers, auditors, and other officers.
 
 ## Technical Specifications
 
