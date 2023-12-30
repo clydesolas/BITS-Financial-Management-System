@@ -250,10 +250,10 @@ const ReportTable = () => {
       <h4 className='d-flex justify-content-center mb-4'>Financial Report</h4>
 
       <Row className="my-4 pt-2">
-        <Col sm="2" className="d-flex align-items-center">
+        <Col lg="2" className="d-flex align-items-center">
           <h6 className='px-2'>Generate Report:</h6>
         </Col>
-        <Col sm="3">
+        <Col lg="3">
           <Form.Group controlId='startDate'>
             <InputGroup>
               <InputGroup.Text className="my-2">Start Date:</InputGroup.Text>
@@ -261,7 +261,7 @@ const ReportTable = () => {
             </InputGroup>
           </Form.Group>
         </Col>
-        <Col sm="3">
+        <Col lg="3">
           <Form.Group controlId='endDate'>
             <InputGroup>
               <InputGroup.Text className="my-2">End Date:</InputGroup.Text>
@@ -269,7 +269,7 @@ const ReportTable = () => {
             </InputGroup>
           </Form.Group>
         </Col>
-        <Col sm="4">
+        <Col lg="4">
           <Button variant='success' className="my-2" onClick={handleExcelExport}>
             Excel
           </Button>
