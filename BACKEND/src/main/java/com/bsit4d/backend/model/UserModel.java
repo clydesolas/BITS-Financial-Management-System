@@ -28,7 +28,8 @@ public class UserModel{
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime dateAdded;
-    @Column(columnDefinition = "ACTIVE", updatable = true)
+
+    @Column(name = "status", columnDefinition = "varchar(255) default 'ACTIVE'")
     private String status;
     private String role;
     private String password;
