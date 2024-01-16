@@ -6,16 +6,16 @@ import {
     MainGreetings,
 } from "../components/Components.js";
 import "bootstrap/dist/css/bootstrap.min.css";
-import TotalCashflowChart from "../components/totalCashflowChart.jsx";
-import MonthlyCollectionChart from "../components/monthlyCollectionChart.jsx";
-import MonthlyDonationChart from "../components/monthlyDonationChart.jsx";
-import MonthlyIgpChart from "../components/monthlyIgpChart.jsx";
+import TotalCashflowChart from "../components/charts/totalCashflowChart.jsx";
+import MonthlyCollectionChart from "../components/charts/monthlyCollectionChart.jsx";
+import MonthlyDonationChart from "../components/charts/monthlyDonationChart.jsx";
+import MonthlyIgpChart from "../components/charts/monthlyIgpChart.jsx";
 import * as Icon from "react-bootstrap-icons";
 import "../assets/css/global.css";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
-import LoginHistory from "../components/loginHistory.jsx";
-import OfficerCount from "../components/officerCount.jsx";
-import { getBalanceCounts } from "../components/balanceCount.jsx";
+import LoginHistory from "../components/tables/loginHistory.jsx";
+import OfficerCount from "../components/counter/officerCount.jsx";
+import { getBalanceCounts } from "../components/counter/balanceCount.jsx";
 function Userdashboard() {
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 

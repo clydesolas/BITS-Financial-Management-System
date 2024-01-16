@@ -3,8 +3,8 @@ import { Header, Sidebar, MainGreetings } from "../components/Components.js";
 import { Button, Form, Table, Modal, Container} from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../assets/css/global.css";
-import OfficerTable from "../components/officerTable.jsx";
-import OfficerAddModal from "../components/officerAddModal.jsx";
+import OfficerTable from "../components/tables/officerTable.jsx";
+import OfficerAddModal from "../components/modals/officerAddModal.jsx";
 function Officer() {
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 

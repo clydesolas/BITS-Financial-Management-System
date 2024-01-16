@@ -60,6 +60,22 @@ function Sidebar({ isSidebarVisible }) {
                         </NavLink>
                     </li>
                 )}
+                {accountDetails.role === "TREASURER" && (
+                    <li>
+                        <NavLink
+                            exact
+                            to="/Masterlist"
+                            className={
+                                location.pathname === "/Masterlist"
+                                    ? "active-page"
+                                    : ""
+                            }
+                        >
+                            <Icon.CurrencyExchange className="sidebar-icons" />
+                            Masterlist
+                        </NavLink>
+                    </li>
+                )}
                 {accountDetails.role === "AUDITOR" && (
                     <li>
                         <NavLink

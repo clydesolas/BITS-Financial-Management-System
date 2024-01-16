@@ -6,6 +6,7 @@ import { default as Report } from "./report.jsx";
 import { default as Profile } from "./profile.jsx";
 import { default as PageNotFound } from "./PageNotFound.jsx";
 import { default as Forbidden } from "./Forbidden.jsx";
+import { default as Masterlist } from "./masterlist.jsx";
 
 /* EXPORT ALL IMPORTED PAGES */
 export { Dashboard };
@@ -15,3 +16,4 @@ export { Report };
 export { Profile };
 export { PageNotFound };
 export { Forbidden };
+export { Masterlist };

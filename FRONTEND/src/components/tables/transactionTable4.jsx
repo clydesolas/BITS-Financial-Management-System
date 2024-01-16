@@ -3,9 +3,9 @@ import axios from 'axios';
 import DataTable from 'react-data-table-component';
 import { Form, Button, Container, Modal } from 'react-bootstrap';
 import * as Icon from 'react-bootstrap-icons';
-import '../assets/css/global.css';
-import TransactionUpdateModal from './transactionUpdateModal';
-import TransactionVersionModal from './transactionVersionModal';
+import '../../assets/css/global.css';
+import TransactionUpdateModal from '../modals/transactionUpdateModal';
+import TransactionVersionModal from '../modals/transactionVersionModal';
 
 const TransactionTable = () => {
   const [data, setData] = useState([]);

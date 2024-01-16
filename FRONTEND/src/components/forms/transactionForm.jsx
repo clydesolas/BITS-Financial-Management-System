@@ -7,9 +7,9 @@ import {
   Col, 
   Modal 
 } from 'react-bootstrap';
-import '../assets/css/global.css';
+import '../../assets/css/global.css';
 import axios from 'axios';
-import session from '../components/session.jsx';
+import session from '../session.jsx';
 import * as Icon from 'react-bootstrap-icons';
 
 const TransactionForm = () => {

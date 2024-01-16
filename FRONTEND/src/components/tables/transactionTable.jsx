@@ -3,7 +3,7 @@ import axios from 'axios';
 import DataTable from 'react-data-table-component';
 import { Form, Button, Container, Modal, Table } from 'react-bootstrap';
 import * as Icon from 'react-bootstrap-icons';
-import '../assets/css/global.css';
+import '../../assets/css/global.css';
 
 const TransactionTable = () => {
   const [data, setData] = useState([]);
@@ -237,7 +237,7 @@ const TransactionTable = () => {
         paginationRowsPerPageOptions={[10, 25, 50, 100]}
         persistTableHead={true}
         fixedHeader={true}
-        fixedHeaderScrollHeight="600px"
+        fixedHeaderScrollHeight="500px"
     />
   <Modal show={showModal} onHide={handleCloseModal}>
     <Modal.Header className="container-bg2" closeButton style={{ color: 'white' }}>

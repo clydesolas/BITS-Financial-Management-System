@@ -14,6 +14,7 @@ import {
     Transaction,
     Report,
     Profile,
+    Masterlist,
     PageNotFound,
     Forbidden,
 } from "./pages/index.js";
@@ -23,6 +24,7 @@ const allowedRoles = {
     "/Officer": ["ADMIN"],
     "/Transaction": ["TREASURER"],
     "/Report": ["AUDITOR"],
+    "/Masterlist": ["TREASURER"],
     "/Profile": ["ADMIN", "TREASURER", "AUDITOR", "OTHER_OFFICER"],
 };
 
@@ -90,6 +92,10 @@ const router = createBrowserRouter([
     {
         path: "/Report",
         element: <ProtectedRoute element={<Report />} path="/Report" />,
+    },
+    {
+        path: "/Masterlist",
+        element: <ProtectedRoute element={<Masterlist />} path="/Masterlist" />,
     },
     // profile module
     {

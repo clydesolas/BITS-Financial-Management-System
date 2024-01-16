@@ -1,18 +1,19 @@
-// Userdashboard.jsx
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Header, Sidebar, MainGreetings } from "../components/Components.js";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../assets/css/global.css";
-import TransactionForm from "../components/forms/transactionForm.jsx";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
-import TransactionTable from "../components/tables/transactionTable.jsx";
+import MasterlistForm from "../components/forms/masterlistForm.jsx";
+import MasterlistTable from "../components/tables/masterlistTable.jsx";
 
-function Transaction() {
+function Masterlist() {
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
     const toggleSidebar = () => {
         setIsSidebarVisible(!isSidebarVisible);
     };
+
+   
     return (
         <div>
             <Header toggleSidebar={toggleSidebar} />
@@ -22,16 +23,15 @@ function Transaction() {
                 }`}
             >
                 <MainGreetings />
-                <div className="container-fluid ">
-                    <Row>
+                <Row>
                         <Col sm={8}>
-                            <TransactionTable />
+                        <MasterlistTable/>
                         </Col>
                         <Col sm={4}>
-                            <TransactionForm />
+                        <MasterlistForm /> 
                         </Col>
                     </Row>
-                </div>
+              
                
             </div>
             <Sidebar isSidebarVisible={isSidebarVisible} />
@@ -39,4 +39,4 @@ function Transaction() {
     );
 }
 
-export default Transaction;
+export default Masterlist;

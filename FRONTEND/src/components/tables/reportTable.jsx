@@ -4,11 +4,11 @@ import DataTable from 'react-data-table-component';
 import { Form, Button, Container, Row, Col, InputGroup, FormControl,  OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { saveAs } from 'file-saver';
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';  // Import PDFViewer
-import pdfLogo from '../assets/img/pdfLogo.png';
+import pdfLogo from '../../assets/img/pdfLogo.png';
 import * as Icon from 'react-bootstrap-icons';
-import '../assets/css/global.css';
-import coverImage from '../assets/img/cover.jpg';
-import TransactionVersionModal from './transactionVersionModal';
+import '../../assets/css/global.css';
+import coverImage from '../../assets/img/cover.jpg';
+import TransactionVersionModal from '../modals/transactionVersionModal';
 
 const ReportTable = () => {
   const [data, setData] = useState([]);

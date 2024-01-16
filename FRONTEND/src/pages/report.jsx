@@ -4,7 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "../assets/css/global.css";
 import { useReactToPrint } from "react-to-print"; //npm i react-to-print
 import { useDownloadExcel } from "react-export-table-to-excel"; //npm i react-export-table-to-excel
-import ReportTable from "../components/reportTable.jsx";
+import ReportTable from "../components/tables/reportTable.jsx";
 
 function Report() {
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);
