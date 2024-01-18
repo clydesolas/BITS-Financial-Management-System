@@ -16,7 +16,7 @@
     background-color: var(--darkgreen) !important;
     color: var(--whitesmoke) !important;
     height: auto;
-    min-height: 499px;
+    min-height: 540px;
 }
 .container-bg2 {
     background-color: var(--darkgreen) !important;
@@ -359,3 +359,20 @@ input[type="date"] {
     border-radius: 8px;
     cursor: pointer;
 }
+
+  .zoomable-image {
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .image-container:active {
+    transform: scale(.95);
+  }
+  .image-container:hover {
+    transform: scale(1.03);
+  }
+  .modal-image {
+    width: 100%;
+    height: auto;
+  }
+  
+  

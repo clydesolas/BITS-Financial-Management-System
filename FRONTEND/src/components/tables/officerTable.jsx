@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
-import { Form, Button, Container, Modal } from 'react-bootstrap';
+import { Form, Button, Container, Modal ,ButtonGroup} from 'react-bootstrap';
 import * as Icon from 'react-bootstrap-icons';
+import { ToastContainer, toast } from 'react-toastify';
 const OfficerTable = () => {
     const [data, setData] = useState([]);
     const [searchText, setSearchText] = useState('');
@@ -14,14 +15,6 @@ const OfficerTable = () => {
       return () => clearInterval(intervalId);
     }, []);
   
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('http://localhost:8001/userList');
-        setData(response.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
   
     const columns = [
       { name: 'No.', selector: 'userId', sortable: true },
@@ -31,6 +24,26 @@ const OfficerTable = () => {
       { name: 'Status', selector: 'status', sortable: true },
       { name: 'Role', selector: 'role', sortable: true },
     ];
+
+    const [showActiveTable, setShowActiveTable] = useState(true);
+
+  const activeColumns = [
+    { name: 'No.', selector: 'userId', sortable: true },
+    { name: 'Name', selector: 'firstName', sortable: true, cell: (row) => `${row.firstName} ${row.middleName} ${row.lastName}` },
+    { name: 'ID Number', selector: 'idNumber', sortable: true },
+    { name: 'Date Added', selector: 'dateAdded', sortable: true, cell: (row) => formatDateAdded(row) },
+    { name: 'Status', selector: 'status', sortable: true },
+    { name: 'Role', selector: 'role', sortable: true },
+  ];
+
+  const archivedColumns = [
+    { name: 'No.', selector: 'userId', sortable: true },
+    { name: 'Name', selector: 'firstName', sortable: true, cell: (row) => `${row.firstName} ${row.middleName} ${row.lastName}` },
+    { name: 'ID Number', selector: 'idNumber', sortable: true },
+    { name: 'Date Added', selector: 'dateAdded', sortable: true, cell: (row) => formatDateAdded(row) },
+    { name: 'Status', selector: 'status', sortable: true },
+    { name: 'Role', selector: 'role', sortable: true },
+  ];
   
     const formatDateAdded = (row) => {
       const dateAdded = new Date(row.dateAdded);
@@ -43,6 +56,27 @@ const OfficerTable = () => {
         hour12: true,
       });
     };
+
+    const handleArchive = async () => {
+      if (selectedRow) {
+        try {
+          // Make a request to the archive endpoint for the selected user
+          const response = await axios.put(`http://localhost:8001/archive/${selectedRow.userId}`);
+    
+          if (response.data === "User archived successfully") {
+            toast.success("User archived successfully");
+            handleCloseModal();
+            fetchData();
+          } else {
+            toast.error("Something went wrong. Can't archive user.");
+          }
+        } catch (error) {
+          console.error('Error archiving user:', error);
+          toast.error("Something went wrong. Can't archive user.");
+        }
+      }
+    };
+    
   
     const handleOpenModal = (row) => {
       setSelectedRow(row);
@@ -55,22 +89,58 @@ const OfficerTable = () => {
     const filteredData = data.filter((row) =>
       columns.some((column) => String(row[column.selector]).toLowerCase().includes(searchText.toLowerCase()))
     );
+
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8001/userList?status=${showActiveTable ? 'ACTIVE' : 'ARCHIVED'}`);
+        setData(response.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    const handleToggleTable = (active) => {
+      setShowActiveTable(active);
+      fetchData();
+    };
   
     return (
       <Container className=' mt-1 p-3 '>
-        <Form.Group controlId='search' className='my-3'>
-          <Form.Control type='text' placeholder='Search...' value={searchText} onChange={(e) => setSearchText(e.target.value)} />
-        </Form.Group>
-        <DataTable
-          columns={columns}
-          data={filteredData}
-          pagination
-          paginationPerPage={10}
-          highlightOnHover
-          paginationRowsPerPageOptions={[10, 25, 50, 100]}
-          persistTableHead={true}
-          onRowClicked={handleOpenModal}
+      <ToastContainer />
+      <Form.Group controlId='search' className='my-3'>
+        <Form.Control
+          type='text'
+          placeholder='Search...'
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
         />
+      </Form.Group>
+
+      <ButtonGroup className='mb-2'>
+        <Button
+          variant={showActiveTable ? 'primary' : 'secondary'}
+          onClick={() => handleToggleTable(true)}
+        >
+          Active Users
+        </Button>
+
+        <Button
+          variant={showActiveTable ? 'secondary' : 'primary'}
+          onClick={() => handleToggleTable(false)}
+        >
+          Archived Users
+        </Button>
+      </ButtonGroup>
+      <DataTable
+        columns={showActiveTable ? activeColumns : archivedColumns}
+        data={filteredData}
+        pagination
+        paginationPerPage={10}
+        highlightOnHover
+        paginationRowsPerPageOptions={[10, 25, 50, 100]}
+        persistTableHead={true}
+        onRowClicked={handleOpenModal}
+      />
         <Modal show={!!selectedRow} centered onHide={handleCloseModal}>
           <Modal.Header closeButton>
             <Modal.Title>Officer Details</Modal.Title>
@@ -83,7 +153,14 @@ const OfficerTable = () => {
                 <p>Status: {selectedRow.status}</p>
                 <p>Role: {selectedRow.role}</p>
                 <p>ID Number: {selectedRow.idNumber}</p>
-                <p>Temporary Password: {selectedRow.generatedPassword}</p>
+                {/* Form for archiving */}
+                {selectedRow && selectedRow.status=="ACTIVE" && (
+              <Form>
+                <Button variant='danger' onClick={handleArchive}>
+                  Archive User
+                </Button>
+              </Form>
+                )}
               </>
             )}
           </Modal.Body>

@@ -38,7 +38,7 @@ public class UserService implements UserDetailsService {
 
     public List<UserModel> getAllUsers() {
         try {
-            return userRepository.findAll();
+            return userRepository.findAllByRoleNot("ADMIN");
         } catch (Exception e) {
             // Log the exception or handle it based on your application's needs
             throw new RuntimeException("Error retrieving all users", e);
@@ -80,10 +80,21 @@ public class UserService implements UserDetailsService {
     public String registerUser(UserModel userModel) {
         try {
             // Check if the idNumber already exists
+            // Check if ID number already exists
             if (userRepository.existsByIdNumber(userModel.getIdNumber())) {
                 return "ID number already exists";
-            }
-            else {
+            } else if (userModel.getRole().equals("OTHER_OFFICER")) {
+                // Allow multiple roles to exist for OTHER_OFFICER
+                // Hash the password using BCrypt
+                String hashedPassword = new BCryptPasswordEncoder().encode(userModel.getPassword());
+                userModel.setPassword(hashedPassword);
+
+                // Save the user to the database
+                userRepository.save(userModel);
+                return "Registered successfully!";
+            } else if (userRepository.findByRoleAndStatus(userModel.getRole(), "ACTIVE")) {
+                return  "Role already exists and active.";
+            } else {
                 // Hash the password using BCrypt
                 String hashedPassword = new BCryptPasswordEncoder().encode(userModel.getPassword());
                 userModel.setPassword(hashedPassword);
@@ -92,6 +103,7 @@ public class UserService implements UserDetailsService {
                 userRepository.save(userModel);
                 return "Registered successfully!";
             }
+
 
         } catch (DataIntegrityViolationException e) {
             // Handle any database integrity violations, such as unique constraint violation
@@ -165,4 +177,7 @@ public class UserService implements UserDetailsService {
         }
     }
 
+    public List<UserModel> getUsersByStatus(String status) {
+        return userRepository.findByStatus(status);
+    }
 }

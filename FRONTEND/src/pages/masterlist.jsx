@@ -5,7 +5,6 @@ import "../assets/css/global.css";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import MasterlistForm from "../components/forms/masterlistForm.jsx";
 import MasterlistTable from "../components/tables/masterlistTable.jsx";
-
 function Masterlist() {
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
@@ -23,6 +22,7 @@ function Masterlist() {
                 }`}
             >
                 <MainGreetings />
+                
                 <Row>
                         <Col sm={8}>
                         <MasterlistTable/>

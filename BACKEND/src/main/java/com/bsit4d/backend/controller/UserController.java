@@ -88,9 +88,26 @@ public class UserController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/userList")
-    public ResponseEntity getAll() {
-        return new ResponseEntity(userService.getAllUsers(), HttpStatus.OK);
+    public ResponseEntity getAll(@RequestParam(name = "status", required = false) String status) {
+        try {
+            List<UserModel> users;
+
+            if (status != null && !status.isEmpty()) {
+                if (status.equalsIgnoreCase("ACTIVE") || status.equalsIgnoreCase("ARCHIVED")) {
+                    users = userService.getUsersByStatus(status);
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid status parameter. Use 'ACTIVE' or 'ARCHIVED'.");
+                }
+            } else {
+                users = userService.getAllUsers();
+            }
+
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving user list: " + e.getMessage());
+        }
     }
+
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/get")
@@ -119,7 +136,19 @@ public class UserController {
         long count = userService.countUsersExcludingAdmin();
         return ResponseEntity.ok(count);
     }
+    @PutMapping("/archive/{userId}")
+    public ResponseEntity<String> archiveUser(@PathVariable Long userId) {
+        try {
+            UserModel user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
 
+            user.setStatus("ARCHIVED");
+            userRepository.save(user);
+
+            return ResponseEntity.ok("User archived successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error archiving user: " + e.getMessage());
+        }
+    }
 
 
 

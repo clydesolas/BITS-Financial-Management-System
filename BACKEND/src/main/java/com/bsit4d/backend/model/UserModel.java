@@ -31,6 +31,8 @@ public class UserModel{
 
     @Column(name = "status", columnDefinition = "varchar(255) default 'ACTIVE'")
     private String status;
+    @Column(name = "role", columnDefinition = "varchar(255) default 'USER'")
+
     private String role;
     private String password;
     private String generatedPassword;

@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
-import { Form, Button, Container, Modal } from 'react-bootstrap';
+import { Form, Button, Container, Modal, Alert } from 'react-bootstrap';
 import * as Icon from 'react-bootstrap-icons';
 import '../../assets/css/global.css';
-import TransactionUpdateModal from '../modals/transactionUpdateModal';
-import TransactionVersionModal from '../modals/transactionVersionModal';
 
 const TransactionTable = () => {
+  // State Hooks
   const [data, setData] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [selectedRow, setSelectedRow] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showTransactionVersionModal, setShowTransactionVersionModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [imageSrc, setImageSrc] = useState('');
   const [formValues, setFormValues] = useState({
     amount: 0,
     quantity: 0,
@@ -21,7 +22,10 @@ const TransactionTable = () => {
     remark: '',
   });
 
+  // Axios Configuration
   axios.defaults.withCredentials = true;
+
+  // Fetch Data
   const fetchData = async () => {
     try {
       const response = await axios.get('http://localhost:8001/transaction/fetchAll');
@@ -31,14 +35,14 @@ const TransactionTable = () => {
     }
   };
 
+  // useEffect for Initial Data Fetch and Interval Fetch
   useEffect(() => {
     fetchData();
     const intervalId = setInterval(fetchData, 5000);
     return () => clearInterval(intervalId);
   }, []);
 
-
-  // Data format Functions
+  // Helper Functions
   const formatTransactionDate = (row) => {
     const transactionDate = new Date(row.transactionDate);
     return transactionDate.toLocaleString('en-US', {
@@ -60,6 +64,36 @@ const TransactionTable = () => {
     });
   };
 
+  const handleInputChange = (field, value) => {
+    setFormValues((prevFormValues) => ({
+      ...prevFormValues,
+      [field]: value,
+      total: (field === 'amount' ? value : prevFormValues.amount) * (field === 'quantity' ? value : prevFormValues.quantity),
+    }));
+  };
+
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  const getMinDate = () => {
+    const today = new Date();
+    const minDate = new Date(today);
+    minDate.setDate(today.getDate() - 14); 
+    const formattedDate = formatDate(minDate);
+    console.log('Min Date:', formattedDate);
+    return formattedDate;
+  };
+  
+  const getMaxDate = () => {
+    const today = new Date();
+    const formattedDate = formatDate(today);
+    console.log('Max Date:', formattedDate);
+    return formattedDate;
+  };
+
   // Modal Functions
   const handleOpenModal = (row) => {
     setSelectedRow(row);
@@ -72,14 +106,15 @@ const TransactionTable = () => {
       dateAdded: row.dateAdded,
       transactionDate: row.transactionDate,
       transactionVersion: row.transactionVersion,
+      imagePath: row.imagePath
     });
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
+    handleAlertClose(true);
   };
-
 
   const handleOpenTransactionVersionModal = (row) => {
     setSelectedRow(row);
@@ -95,23 +130,27 @@ const TransactionTable = () => {
     });
     setShowTransactionVersionModal(true);
   };
-
+  
   const handleCloseModalVer = () => {
     setShowTransactionVersionModal(false);
   };
 
-  const handleInputChange = (field, value) => {
-    setFormValues((prevFormValues) => ({
-      ...prevFormValues,
-      [field]: value,
-      total: (field === 'amount' ? value : prevFormValues.amount) * (field === 'quantity' ? value : prevFormValues.quantity),
-    }));
-  };
-
-
+  // Handle Update Function
   const handleUpdate = async () => {
+    if (
+      !formValues.orNumber||
+      !formValues.amount ||
+      !formValues.quantity ||
+      !formValues.total ||
+      !formValues.remark ||
+      !formValues.transactionDate
+    ) {
+      setErrorMessage('Please fill up all required fields.');
+      return;
+    }
     try {
-      const response = await axios.put(`http://localhost:8001/transaction/update/${selectedRow.transactionId}`, {
+      const response = await axios.post(`http://localhost:8001/transaction/updateRequest/${selectedRow.transactionId}`, {
+        transactionId: formValues.transactionId,
         amount: formValues.amount,
         quantity: formValues.quantity,
         total: formValues.total,
@@ -125,6 +164,7 @@ const TransactionTable = () => {
         fetchData(); // Refresh data after update
         handleCloseModal();
         setShowSuccessModal(true); // Show the success modal
+        handleAlertClose(true);
       } else {
         console.error('Unexpected response:', response.data);
       }
@@ -187,13 +227,24 @@ const TransactionTable = () => {
         name: 'Total', 
         selector: 'total', 
         sortable: true,
-        minWidth: '130px',
+        minWidth: '115px',
         cell: (row) => (
           <span>
             ₱ {Number(row.total).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         ),
     },
+    { 
+      name: 'Balance', 
+      selector: 'balance', 
+      sortable: true,
+      minWidth: '115px',
+      cell: (row) => (
+        <span>
+          ₱ {Number(row.balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </span>
+      ),
+  },
     { name: 'Particular', selector: 'particular', sortable: true, minWidth: '160px', grow: 5 },
     { name: 'OR No.', selector: 'orNumber', sortable: true },
     { name: 'Remark', selector: 'remark', sortable: true, minWidth: '150px', grow: 5 },
@@ -205,13 +256,15 @@ const TransactionTable = () => {
       grow: 5,
       cell: (row) => (
         <>
-          <Button variant='link' size='sm' onClick={() => handleOpenTransactionVersionModal(row)}>
-            <Icon.ClockHistory variant='dark'/>
-          </Button>
-          <Button variant='link' size='sm' onClick={() => handleOpenModal(row)}>
-            <Icon.Pencil color='green' />
-          </Button>
-        </>
+        
+        <Button variant='link' size='md' onClick={() => handleOpenTransactionVersionModal(row)}>
+        <Icon.ClockHistory variant='dark'/>
+      </Button>
+        <Button variant='link' size='md' onClick={() => handleOpenModal(row)}>
+          <Icon.Pencil color='green' />
+        </Button>
+       
+      </>
       ),
     },
   ];
@@ -222,50 +275,7 @@ const TransactionTable = () => {
 
   return (
     <Container className='form-container mt-1 p-3 pt-4 rounded-4 container-bg'>
-      <h4 className='d-flex justify-content-center'>Breakdown of Cash Inflows and Outflows</h4>
-      <Form.Group controlId='search' className='my-3'>
-        <Form.Control type='text' placeholder='Search...' value={searchText} onChange={(e) => setSearchText(e.target.value)} />
-      </Form.Group>
-      <DataTable
-        columns={columns}
-        data={filteredData}
-        pagination
-        paginationPerPage={10}
-        highlightOnHover
-        paginationRowsPerPageOptions={[10, 25, 50, 100]}
-        persistTableHead={true}
-      />
-      <TransactionUpdateModal
-        showModal={showModal}
-        handleCloseModal={handleCloseModal}
-        handleClear={handleClear}
-        handleUpdate={handleUpdate}
-        formValues={formValues}
-        selectedRow={selectedRow}
-        handleInputChange={handleInputChange}
-        formatDateAdded={formatDateAdded}
-      />
-      <TransactionVersionModal
-        showTransactionVersionModal={showTransactionVersionModal}
-        handleCloseModalVer={handleCloseModalVer}
-        selectedRow={selectedRow}
-      />
-      <Modal show={showSuccessModal} centered onHide={() => setShowSuccessModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title></Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <h3 className="d-flex justify-content-center" style={{ color: 'green' }}>
-            Success <Icon.Check2Circle />
-          </h3>
-          <p className="d-flex justify-content-center">Transaction has been updated successfully.</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowSuccessModal(false)}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {/* ... (your existing JSX structure) */}
     </Container>
   );
 };

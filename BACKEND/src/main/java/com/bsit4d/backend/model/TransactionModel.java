@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.lang.Nullable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,29 +31,59 @@ public class TransactionModel {
     @NotNull
     private Double total;
     private String transactionType;
-    @Column(nullable = true)
+    @NotNull
     private String particular;
-    @Column(nullable = true)
+    @NotNull
     private String orNumber;
-    @Column(nullable = true)
+    @NotNull
     private String remark;
     @NotNull
     private Double idNumber;
     @Column(nullable = true)
     private Double balance;
 
+    @Column(nullable = true)
+    private String academicYear;
+
+    @Column(nullable = true)
+    private String semester;
     @Temporal(TemporalType.TIMESTAMP)
     @CreationTimestamp
     private LocalDateTime dateAdded;
     @Temporal(TemporalType.DATE)
     @OrderBy("transactionDate ASC")
+    @NotNull
     private LocalDate transactionDate;
+    @NotNull
+    private String studentNumber;
 
     @OneToMany(mappedBy = "transaction", cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH })
     @JsonManagedReference
     private List<TransactionVersionModel> transactionVersion;
     @Version
     private Long version;
+
+
+    @Nullable
+    private String imagePath;
+    @Column(name = "transactionStatus", columnDefinition = "varchar(255) default 'OK'")
+    private String transactionStatus;
+    private String auditorRemark;
+
+    public void setBalance(Double balance) {
+        this.balance = balance;
+    }
+
+    @Nullable
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(@Nullable String imagePath) {
+        this.imagePath = imagePath;
+    }
+
+
     @PrePersist
     private void generateTransactionId() {
         if (this.transactionId == null) {
@@ -62,6 +93,21 @@ public class TransactionModel {
         }
     }
 
+    public String getTransactionStatus() {
+        return transactionStatus;
+    }
+
+    public void setTransactionStatus(String transactionStatus) {
+        this.transactionStatus = transactionStatus;
+    }
+
+    public String getAuditorRemark() {
+        return auditorRemark;
+    }
+
+    public void setAuditorRemark(String auditorRemark) {
+        this.auditorRemark = auditorRemark;
+    }
 
     public Double getId() {
         return id;
@@ -165,6 +211,22 @@ public class TransactionModel {
         }
     }
 
+    public String getAcademicYear() {
+        return academicYear;
+    }
+
+    public void setAcademicYear(String academicYear) {
+        this.academicYear = academicYear;
+    }
+
+    public String getSemester() {
+        return semester;
+    }
+
+    public void setSemester(String semester) {
+        this.semester = semester;
+    }
+
     public LocalDate getTransactionDate() {
         return transactionDate;
     }
@@ -181,7 +243,15 @@ public class TransactionModel {
         this.dateAdded = dateAdded;
     }
 
-    public TransactionModel(Double id, String transactionId, String allocationType, Double amount, Double quantity, Double total, String transactionType, String particular, String orNumber, String remark, Double idNumber, Double balance, LocalDate transactionDate, LocalDateTime dateAdded, Long version) {
+    public String getStudentNumber() {
+        return studentNumber;
+    }
+
+    public void setStudentNumber(String studentNumber) {
+        this.studentNumber = studentNumber;
+    }
+
+    public TransactionModel(Double id, String transactionId, String academicYear, String semester, String allocationType, Double amount, Double quantity, Double total, String transactionType, String particular, String orNumber, String remark, Double idNumber, String studentNumber, Double balance, LocalDate transactionDate, LocalDateTime dateAdded, Long version, String imagePath, String transactionStatus, String auditorRemark) {
         this.id = id;
         this.transactionId = transactionId;
         this.allocationType = allocationType;
@@ -191,12 +261,18 @@ public class TransactionModel {
         this.transactionType = transactionType;
         this.particular = particular;
         this.orNumber = orNumber;
+        this.studentNumber = studentNumber;
+        this.academicYear = academicYear;
+        this.semester = semester;
         this.remark = remark;
         this.idNumber = idNumber;
         balance = balance;
         this.transactionDate = transactionDate;
         this.dateAdded = dateAdded;
         this.version = version;
+        this.imagePath = imagePath;
+        this.transactionStatus = transactionStatus;
+        this.auditorRemark = auditorRemark;
     }
 
     public Long getVersion() {

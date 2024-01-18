@@ -89,7 +89,11 @@ const TotalCashflowChart = () => {
     }
 
     if (!Array.isArray(data) || data.length === 0) {
-        return <div>Data structure is not as expected.</div>;
+        return <>
+    <div className='fw-bold text-black-50 my-4 py-5  d-flex justify-content-center'> 
+        No chart data available
+    </div>
+    </>;
     }
 
     const chartData = {

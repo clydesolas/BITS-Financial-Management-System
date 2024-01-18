@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DataTable from 'react-data-table-component';
-import { Form, Button, Container, Row, Col, InputGroup, FormControl,  OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Form, Button, Container, Row, Col, InputGroup, FormControl,  OverlayTrigger, Tooltip, Card } from 'react-bootstrap';
 import { saveAs } from 'file-saver';
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';  // Import PDFViewer
 import pdfLogo from '../../assets/img/pdfLogo.png';
@@ -9,6 +9,9 @@ import * as Icon from 'react-bootstrap-icons';
 import '../../assets/css/global.css';
 import coverImage from '../../assets/img/cover.jpg';
 import TransactionVersionModal from '../modals/transactionVersionModal';
+import Balances from '../cards/balances.jsx';
+import CurrentPrice from '../counter/currentPrice.jsx';
+import VoidTransactions from './voidTransactions.jsx';
 
 const ReportTable = () => {
   const [data, setData] = useState([]);
@@ -17,6 +20,8 @@ const ReportTable = () => {
   const [endDate, setEndDate] = useState('');
   const [showTransactionVersionModal, setShowTransactionVersionModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedTransactionType, setSelectedTransactionType] = useState('all');
+  const [selectedAllocationType, setSelectedAllocationType] = useState('all');
   const handleOpenTransactionVersionModal = (row) => {
     setSelectedRow(row);
     
@@ -27,17 +32,37 @@ const ReportTable = () => {
     setShowTransactionVersionModal(false);
   };
 
+  const handleTransactionTypeChange = (e) => {
+    setSelectedTransactionType(e.target.value);
+  };
+
+  const handleAllocationTypeChange = (e) => {
+    setSelectedAllocationType(e.target.value);
+  };
+
   useEffect(() => {
     fetchData();
-  }, [startDate, endDate]);
+  }, [startDate, endDate, selectedTransactionType, selectedAllocationType]);
+
 
   const fetchData = async () => {
+    axios.defaults.withCredentials = true;
     try {
       let url = 'http://localhost:8001/transaction/fetchAll';
 
-      if (startDate && endDate) {
+      if (selectedAllocationType === 'all' && selectedTransactionType !== 'all' && startDate && endDate) {
+        url = `http://localhost:8001/transaction/findByDateRange?startDate=${startDate}&endDate=${endDate}&transactionTypes=${selectedTransactionType}`;
+      } else if (selectedAllocationType !== 'all' && selectedTransactionType === 'all' && startDate && endDate) {
+        url = `http://localhost:8001/transaction/findByDateRange?startDate=${startDate}&endDate=${endDate}&allocationTypes=${selectedAllocationType}`;
+      } else if (selectedAllocationType === 'all' && selectedTransactionType === 'all' && startDate && endDate) {
+        url = `http://localhost:8001/transaction/findByDateRange?startDate=${startDate}&endDate=${endDate}`;
+      } else if(selectedAllocationType !== 'all' && selectedTransactionType !== 'all' && startDate && endDate){
         url = `http://localhost:8001/transaction/findByDateRange?startDate=${startDate}&endDate=${endDate}`;
       }
+      else{
+        url = 'http://localhost:8001/transaction/fetchAll';
+      }
+      console.log('API Request URL:', url); // Add this line to log the API request URL
 
       const response = await axios.get(url);
       setData(response.data);
@@ -56,7 +81,16 @@ const ReportTable = () => {
 
   const handleExcelExport = () => {
     if (startDate && endDate) {
-      window.location.href = `http://localhost:8001/transaction/groupReport?startDate=${startDate}&endDate=${endDate}`;
+      // Include new parameters for allocationTypes and transactionTypes
+       if (selectedAllocationType === 'all' && selectedTransactionType !== 'all' && startDate && endDate) {
+        window.location.href  = `http://localhost:8001/transaction/groupReport?startDate=${startDate}&endDate=${endDate}&transactionTypes=${selectedTransactionType}`;
+      } else if (selectedAllocationType !== 'all' && selectedTransactionType === 'all' && startDate && endDate) {
+        window.location.href  = `http://localhost:8001/transaction/groupReport?startDate=${startDate}&endDate=${endDate}&allocationTypes=${selectedAllocationType}`;
+      } else if (selectedAllocationType === 'all' && selectedTransactionType === 'all' && startDate && endDate) {
+        window.location.href  = `http://localhost:8001/transaction/groupReport?startDate=${startDate}&endDate=${endDate}`;
+      } else if(selectedAllocationType !== 'all' && selectedTransactionType !== 'all' && startDate && endDate){
+        window.location.href  = `http://localhost:8001/transaction/groupReport?startDate=${startDate}&endDate=${endDate}`;
+      }
     } else {
       console.error('Please select start and end dates');
     }
@@ -183,6 +217,8 @@ const ReportTable = () => {
     },
     { name: 'OR No.', selector: 'orNumber', sortable: true },
     { name: 'Remark', selector: 'remark', sortable: true, minWidth: '150px', grow: 5 },
+    { name: 'Student Number', selector: 'studentNumber', minWidth: '150px', grow: 5, sortable: true },
+
     {
       name: 'Action',
       selector: 'actionModal',
@@ -246,14 +282,46 @@ const ReportTable = () => {
   );
 
   return (
-    <Container className='form-container mt-1 p-3 pt-4 rounded-4 container-bg'>
+    <div className='mt-0 p-3 pt-4 rounded-4 container-bg'>
       <h4 className='d-flex justify-content-center mb-4'>Financial Report</h4>
-
-      <Row className="my-4 pt-2">
-        <Col lg="2" className="d-flex align-items-center">
-          <h6 className='px-2'>Generate Report:</h6>
-        </Col>
-        <Col lg="3">
+<Row>
+  <div className="">
+  <Balances/>
+  </div>
+  <Col lg="6">
+    
+    <Card>
+  <Card.Header>
+        <h6 className='px-2'>Generate Report:</h6>
+  </Card.Header>
+      <Row className=" p-4 my-2">
+     <Col lg="6">
+    <Form.Group controlId='transactionType'>
+      <InputGroup  className='my-2'>
+        <InputGroup.Text>Transaction Type:</InputGroup.Text>
+        <Form.Control as='select' value={selectedTransactionType} onChange={handleTransactionTypeChange}>
+          <option value='all'>All</option>
+          <option value='INFLOW'>Inflow</option>
+          <option value='OUTFLOW'>Outflow</option>
+        </Form.Control>
+      </InputGroup>
+    </Form.Group>
+  </Col>
+  <Col lg="6">
+    <Form.Group controlId='allocationType'>
+      <InputGroup className='my-2'>
+        <InputGroup.Text >Allocation Type:</InputGroup.Text>
+        <Form.Control as='select' value={selectedAllocationType} onChange={handleAllocationTypeChange}>
+          <option value='all'>All</option>
+          <option value='DONATION'>Donation</option>
+          <option value='COLLECTION'>Collection</option>
+          <option value='IGP'>IGP</option>
+          {/* Add other allocation types as needed */}
+        </Form.Control>
+      </InputGroup>
+    </Form.Group>
+  </Col>
+        <Col lg="6">
           <Form.Group controlId='startDate'>
             <InputGroup>
               <InputGroup.Text className="my-2">Start Date:</InputGroup.Text>
@@ -261,7 +329,7 @@ const ReportTable = () => {
             </InputGroup>
           </Form.Group>
         </Col>
-        <Col lg="3">
+        <Col lg="6">
           <Form.Group controlId='endDate'>
             <InputGroup>
               <InputGroup.Text className="my-2">End Date:</InputGroup.Text>
@@ -269,12 +337,23 @@ const ReportTable = () => {
             </InputGroup>
           </Form.Group>
         </Col>
-        <Col lg="4">
+        <Col lg="12" className="d-flex justify-content-center">
           <Button variant='success' className="my-2" onClick={handleExcelExport}>
             Excel
           </Button>
         </Col>
       </Row>
+      </Card>
+   
+  </Col>
+  <Col lg="6">
+    
+     
+      <CurrentPrice/>
+      <VoidTransactions/>
+   
+  </Col>
+</Row>
 
       <Form.Group controlId='search' className='my-3'>
         <Form.Control type='text' placeholder='Search...' value={searchText} onChange={(e) => setSearchText(e.target.value)} />
@@ -296,7 +375,7 @@ const ReportTable = () => {
         handleCloseModalVer={handleCloseModalVer}
         selectedRow={selectedRow}
       />
-    </Container>
+    </div>
   );
 };
 

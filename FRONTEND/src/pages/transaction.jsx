@@ -6,7 +6,8 @@ import "../assets/css/global.css";
 import TransactionForm from "../components/forms/transactionForm.jsx";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import TransactionTable from "../components/tables/transactionTable.jsx";
-
+import Balances from "../components/cards/balances.jsx";
+import PriceForm from "../components/forms/priceForm.jsx";
 function Transaction() {
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
@@ -22,6 +23,15 @@ function Transaction() {
                 }`}
             >
                 <MainGreetings />
+               
+               <Row>
+               <Col sm={8}>
+               <Balances/>
+                </Col>
+                <Col sm={4}>
+                <PriceForm/>
+                </Col>
+               </Row>
                 <div className="container-fluid ">
                     <Row>
                         <Col sm={8}>
@@ -32,7 +42,7 @@ function Transaction() {
                         </Col>
                     </Row>
                 </div>
-               
+              
             </div>
             <Sidebar isSidebarVisible={isSidebarVisible} />
         </div>

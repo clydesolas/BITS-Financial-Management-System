@@ -14,13 +14,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/transaction")
@@ -31,12 +34,26 @@ public class TransactionController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/save")
+    @PostMapping(value = "/save", consumes = {"multipart/form-data", "application/json"})
     @PreAuthorize("hasAuthority ('TREASURER')")
-    public ResponseEntity save(@RequestBody TransactionModel transactionModel){
-        return new ResponseEntity<>(transactionService.save(transactionModel), HttpStatus.OK);
+    public ResponseEntity save(@RequestBody MultipartFile file,TransactionModel transactionModel) {
+        return new ResponseEntity<>(transactionService.save(file, transactionModel), HttpStatus.OK);
     }
 
+    @PostMapping("/checkExistence")
+    public ResponseEntity<Map<String, Boolean>> checkTransactionExistence(@RequestBody Map<String, String> request) {
+        String studentNumber = request.get("studentNumber");
+        String academicYear = request.get("academicYear");
+        String semester = request.get("semester");
+        String particular = request.get("particular");
+
+        boolean exists = transactionService.doesTransactionExist(studentNumber, academicYear, semester, particular);
+
+        Map<String, Boolean> response = new HashMap<>();
+        response.put("exists", exists);
+
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/igpList")
     public ResponseEntity<List<TransactionModel>> getAllIgpTransactions() {
@@ -90,33 +107,46 @@ public class TransactionController {
     public List<TransactionModel> getAllTransaction() {
         return transactionService.findAllTransactionsWithBalance();
     }
+
+    @GetMapping("/fetchVoid")
+    public List<TransactionModel> getAllVoid() {
+        return transactionService.findAllTransactionsVoid();
+    }
     @GetMapping("/findByDateRange")
     public ResponseEntity<List<TransactionModel>> findTransactionsByDateRange(
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) List<String> allocationTypes,
+            @RequestParam(required = false) List<String> transactionTypes) {
 
-        List<TransactionModel> transactions = transactionService.findAllTransactionsDateRange(startDate, endDate);
+            DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+            String currentDateTime = dateFormatter.format(new Date());
 
-        return new ResponseEntity<>(transactions, HttpStatus.OK);
+            List<TransactionModel> transactionsInRange = transactionService.findAllTransactionsDateRange(
+                    startDate, endDate, allocationTypes, transactionTypes);
+        return new ResponseEntity<>(transactionsInRange, HttpStatus.OK);
     }
 
     @GetMapping("/groupReport")
+    @PreAuthorize("hasAuthority ('AUDITOR')")
     public ResponseEntity<Resource> generateExcel(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) List<String> allocationTypes,
+            @RequestParam(required = false) List<String> transactionTypes) {
         try {
             DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
             String currentDateTime = dateFormatter.format(new Date());
 
-            List<TransactionModel> transactionsInRange = transactionService.findAllTransactionsDateRange(startDate, endDate);
+            List<TransactionModel> transactionsInRange = transactionService.findAllTransactionsDateRange(
+                    startDate, endDate, allocationTypes, transactionTypes);
 
             byte[] excelBytes = transactionService.generateExcel(transactionsInRange);
-
 
             ByteArrayResource resource = new ByteArrayResource(excelBytes);
 
             HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=BITS-FINANCIAL-REPORT_" + currentDateTime+ ".xlsx");
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=BITS-FINANCIAL-REPORT_" + currentDateTime + ".xlsx");
 
             return ResponseEntity.ok()
                     .headers(headers)
@@ -130,10 +160,25 @@ public class TransactionController {
     }
 
 
+
+//    @PutMapping("/update/{transactionId}")
+//    public ResponseEntity<String> updateTransaction(@PathVariable String transactionId, @RequestBody TransactionModel updatedTransaction) {
+//        try {
+//            String result = transactionService.updateTransaction(transactionId, updatedTransaction);
+//            if ("Success".equals(result)) {
+//                return new ResponseEntity<>("Success", HttpStatus.OK);
+//            } else {
+//                return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+//            }
+//        } catch (Exception e) {
+//            return new ResponseEntity<>("Error updating transaction: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+
     @PutMapping("/update/{transactionId}")
-    public ResponseEntity<String> updateTransaction(@PathVariable String transactionId, @RequestBody TransactionModel updatedTransaction) {
+    public ResponseEntity<String> updateTransaction(@PathVariable String transactionId) {
         try {
-            String result = transactionService.updateTransaction(transactionId, updatedTransaction);
+            String result = transactionService.updateTransaction(transactionId);
             if ("Success".equals(result)) {
                 return new ResponseEntity<>("Success", HttpStatus.OK);
             } else {
@@ -143,6 +188,40 @@ public class TransactionController {
             return new ResponseEntity<>("Error updating transaction: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PutMapping("/void/{transactionId}/{approval}")
+    public ResponseEntity<String> voidApprovalTransaction(
+            @PathVariable String transactionId,
+            @PathVariable String approval
+    ) {
+        try {
+
+            String result = transactionService.voidApprovalTransaction(transactionId, approval);
+            if ("Success".equals(result)) {
+                return new ResponseEntity<>("Success", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error updating transaction: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+//    @PostMapping("/updateRequest/{transactionId}")
+//    public ResponseEntity<String> updateRequestTransaction(@PathVariable String transactionId, @RequestBody TransactionUpdateRequestModel requestUpdateTransaction) {
+//        try {
+//            String result = transactionService.updateRequestTransaction(transactionId, requestUpdateTransaction);
+//            if ("Success".equals(result)) {
+//                return new ResponseEntity<>("Success", HttpStatus.OK);
+//            } else {
+//                return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+//            }
+//        } catch (Exception e) {
+//            return new ResponseEntity<>("Error updating transaction: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
     @GetMapping("/updateLogs")
     public List<TransactionModel> getAllTransactionsWithVersions() {
         return  transactionService.getAllTransactionsWithVersions();

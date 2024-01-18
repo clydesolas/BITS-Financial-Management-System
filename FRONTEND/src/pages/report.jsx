@@ -23,7 +23,9 @@ function Report() {
                 }`}
             >
                 <MainGreetings />
+                <div className="container-fluid ">
                 <ReportTable/>
+                </div>
             </div>
             <Sidebar isSidebarVisible={isSidebarVisible} />
         </div>

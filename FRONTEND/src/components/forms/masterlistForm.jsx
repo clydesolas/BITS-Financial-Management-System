@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Form, Button, Container, Row, Col, Alert, Image } from 'react-bootstrap';
+import { Card, Form, Button, Container, Row, Col, Alert, Image , Modal} from 'react-bootstrap';
 import axios from 'axios';
 import excelLayout from '../../assets/img/excel_format.png';
 import '../../assets/css/global.css';
@@ -51,21 +51,26 @@ const MasterlistForm = () => {
   
 
   const semesters = ["First Semester", "Second Semester"]; // Adjust as needed
+  const [showModal, setShowModal] = useState(false);
+
+  const handleToggleModal = () => {
+    setShowModal(!showModal);
+  };
 
   return (
-    <Container >
+    <Container>
           <Card className='rounded-4'>
             <Card.Body  className='container-bg2 rounded-4'>
-              <Card.Title>Masterlist Upload Form</Card.Title>
+              <Card.Title className='d-flex justify-content-center'><h4>Masterlist Upload Form</h4></Card.Title>
               {uploadMessage && <Alert variant="info" className="mt-3">{uploadMessage}</Alert>}
 
               <Form>
                 <Form.Group className="pt-1">
-                  <Form.Label>Excel File:</Form.Label>
+                  <Form.Label><span className='text-danger fs-5'>*</span>Excel File:</Form.Label>
                   <Form.Control type="file" accept=".xlsx" onChange={handleFileChange} />
                 </Form.Group>
                 <Form.Group className="pt-3">
-                  <Form.Label>Academic Year:</Form.Label>
+                  <Form.Label><span className='text-danger fs-5'>*</span>Academic Year:</Form.Label>
                   <Form.Control as="select" value={academicYear} onChange={(e) => setAcademicYear(e.target.value)}>
                     {years.map((year) => (
                       <option key={year} value={year}>{year}</option>
@@ -73,7 +78,7 @@ const MasterlistForm = () => {
                   </Form.Control>
                 </Form.Group>
                 <Form.Group className="pt-3">
-                  <Form.Label>Semester:</Form.Label>
+                  <Form.Label><span className='text-danger fs-5'>*</span>Semester:</Form.Label>
                   <Form.Control as="select" value={semester} onChange={(e) => setSemester(e.target.value)}>
                     <option value="" disabled>Select Semester</option>
                     {semesters.map((sem) => (
@@ -82,14 +87,21 @@ const MasterlistForm = () => {
                   </Form.Control>
                 </Form.Group>
                 <Form.Group className="py-3 d-flex justify-content-end">
-                  <Button variant="primary" onClick={handleUpload}>
+                  <Button variant="secondary" className=' button-bg' onClick={handleUpload}>
                     Upload File
                   </Button>
                 </Form.Group>
               </Form>
-              <Alert variant="success">Note: Please follow the Excel layout of the masterlist as shown in the image below.
-          <Image  className="pt-2"src={excelLayout} alt="Masterlist Layout" fluid />
-          </Alert>
+        
+           <Alert variant="dark" className="image-container py-2 mt-2" onClick={handleToggleModal}>
+            Note: Please follow the Excel layout of the masterlist as shown in the image below.
+            <Image className="pt-2"  src={excelLayout} alt="Masterlist Layout" fluid/>
+            <Modal show={showModal} onHide={handleToggleModal} centered size="lg">
+              <Modal.Body className="p-0">
+                <img src={excelLayout} alt="Masterlist Layout" className="modal-image" />
+              </Modal.Body>
+            </Modal>
+         </Alert>
             </Card.Body>
             
           </Card>

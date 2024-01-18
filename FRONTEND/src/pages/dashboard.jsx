@@ -16,7 +16,26 @@ import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import LoginHistory from "../components/tables/loginHistory.jsx";
 import OfficerCount from "../components/counter/officerCount.jsx";
 import { getBalanceCounts } from "../components/counter/balanceCount.jsx";
+import CurrentPrice from "../components/counter/currentPrice.jsx";
+import Balances from "../components/cards/balances.jsx";
+import axios from 'axios';
+
 function Userdashboard() {
+    const fetchData = async () => {
+        try {
+            axios.defaults.withCredentials = true;
+            await axios.put('http://localhost:8001/masterlist/status');
+            console.log("Masterlist status updated");
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []); // Empty dependency array means this effect runs once on mount
+
+
     const [isSidebarVisible, setIsSidebarVisible] = useState(false);
 
     const toggleSidebar = () => {
@@ -130,18 +149,7 @@ function Userdashboard() {
                     </div>
                 </div>
                 <br />
-                <Row className="my-3">
-                    <Col sm={6}>
-                        <div className="rounded-2 border  p-1 shadow-sm">
-                            <TotalCashflowChart />
-                        </div>
-                    </Col>
-                    <Col sm={6}>
-                        <div className="rounded-2 border  p-1 shadow-sm">
-                            <LoginHistory />
-                        </div>
-                    </Col>
-                </Row>
+                
                 <Row className="my-3">
                     <Col sm={4}>
                         <div
@@ -165,6 +173,26 @@ function Userdashboard() {
                             style={{ height: "215px" }}
                         >
                             <MonthlyIgpChart />
+                        </div>
+                    </Col>
+                </Row>
+                <Row className="my-3">
+                  {/* <Col sm={8}>
+                    <Balances/>
+                    </Col> */}
+                    <Col sm={3}>
+                    <div className="pt-2">
+                            <CurrentPrice />
+                        </div>
+                        </Col>
+                    <Col sm={5}>
+                        <div className="rounded-2 border  p-1 shadow-sm">
+                            <TotalCashflowChart />
+                        </div>
+                    </Col>
+                    <Col sm={4}>
+                        <div className="rounded-2 border  p-1 shadow-sm">
+                            <LoginHistory />
                         </div>
                     </Col>
                 </Row>

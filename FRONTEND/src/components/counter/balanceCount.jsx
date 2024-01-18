@@ -33,7 +33,7 @@ export const getBalanceCounts = async () => {
   let collectionCount = Number(collection).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   let donationCount = Number(donation).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   let igpCount = Number(igp).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return { collectionCount, donationCount, igpCount };
+  return { collectionCount, donationCount, igpCount, collection, donation, igp};
 };
 
 

@@ -30,7 +30,7 @@ const LoginHistory = () => {
       <div className='d-flex justify-content-center mb-2'>
         <b className='text-dark-50'>Login History</b>
       </div>
-      <Container className="mt-3" style={{ height: '275px', overflowY: 'auto' }}>
+      <Container className="mt-3" style={{ height: '220px', overflowY: 'auto' }}>
       <Table striped hover>
        
         <tbody>
