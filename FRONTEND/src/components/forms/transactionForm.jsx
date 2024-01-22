@@ -15,6 +15,10 @@ import * as Icon from 'react-bootstrap-icons';
 import { getBalanceCounts } from "../counter/balanceCount.jsx";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image,PDFViewer, BlobProvider, pdf } from '@react-pdf/renderer';  // Import PDFViewer
+import pdfLogo from '../../assets/img/pdfLogo.png';
+import coverImage from '../../assets/img/cover.jpg';
+
 
 const TransactionForm = () => {
   const [transactionType, setTransactionType] = useState('');
@@ -32,13 +36,16 @@ const TransactionForm = () => {
   const [membershipFeePrice, setMembershipFeePrice] = useState(0);
   const [organizationShirtPrice, setOrganizationShirtPrice] = useState(0);
   const [transactionDate, setTransactionDate] = useState('');
+  const [transactionId, setTransactionId] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [readOnlyFields, setReadOnlyFields] = useState(false);
   const [isStudentNumberValid, setIsStudentNumberValid] = useState('');
   const [studentName, setStudentName] = useState('');
+  const [studentEmail, setStudentEmail] = useState('');
   const [validated, setValidated] = useState(false);
   const [imageFile, setImageFile] = useState(null);
+ 
 
   const [count, setCounts] = useState({
     collection: 0,
@@ -83,9 +90,11 @@ useEffect(() => {
 
         if (response.data.valid) {
           setStudentName(response.data.name);
+          setStudentEmail(response.data.email);
         }
         else {
           setStudentName(''); 
+          setStudentEmail('');
         }
       } catch (error) {
         console.error('Error validating student number:', error);
@@ -118,12 +127,15 @@ useEffect(() => {
         setStudentNumber('');
         setQuantity('');
         setStudentName('');
+        setStudentEmail('');
       }
       else if (newAllocationType === 'COLLECTION' && isNaN(particular)) {
         setParticular('');
         setAmount('');
         setStudentNumber('');
         setStudentName('');
+        setStudentEmail('');
+
         setQuantity('');
       }
       else if (newAllocationType === 'COLLECTION' && newParticular === 'MEMBERSHIP_FEE') {
@@ -140,6 +152,7 @@ useEffect(() => {
         setAmount('');
         setStudentNumber('');
         setStudentName('');
+        setStudentEmail('');
         setQuantity('');
         setReadOnlyFields(false);
       }
@@ -181,6 +194,119 @@ useEffect(() => {
       setQuantity(inputValue);
     }
   };
+  const [pdfBlob, setPdfBlob] = useState(null);
+  useEffect(() => {
+      if (pdfBlob) {
+        // Now you can use pdfBlob
+        console.log('PDF Blob is ready:', pdfBlob);
+  
+        // Example: You might want to trigger some action, such as sending the PDF, here
+        // handleSendPdf();
+      }
+    }, [pdfBlob]);
+  // Create styles
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: 'row',
+    backgroundColor: '#f0faf4',
+  },
+  backgroundImageContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundSize: 'cover',
+    opacity: 0.1,  // 50% opacity
+  },
+  section: {
+    margin: 10,
+    flexGrow: 1,
+    textAlign: 'center',
+  },
+  section3: {
+    margin: 10,
+    display: 'block',
+    textAlign: 'right',
+    position: 'absolute',
+    bottom: '10px',
+    left: '10px',
+    right: '10px',
+    fontSize: '11px',
+    fontStyle: 'italic',
+    color: 'grey',
+  },
+  header: {
+    fontSize: '13px',
+    fontWeight: 'bold',
+    marginTop: '13px',
+    marginBottom: '15px',
+  },
+  subtitle: {
+    fontSize: '13px',
+    marginTop: '5px',
+    paddingLeft: '35px',
+    textAlign: 'left',
+  },
+});
+  const generateAndSetPdf = async () => {
+    try {
+      const MyDoc = (
+        <Document>
+          <Page size={{ width: 420, height: 298 }} style={styles.page}>
+          <Image src={coverImage} style={styles.backgroundImageContainer} />
+          <View style={styles.section}>
+              <Image src={pdfLogo} style={{ width: '45px', height: '45px', margin: '15px 0 0 15px', padding: '0 0 0 0' }} />
+              <Text style={{fontSize: '14px', fontWeight: 'bold' , marginTop: '-35px'}}>{'Builders of Innovative Technologist Society'}</Text>
+              <Text style={styles.header}>{'INVOICE RECORD'}</Text>
+              <Text style={styles.subtitle}>{'Transaction ID:     '+transactionId.toString()}</Text>
+              <Text style={styles.subtitle}>{'Date:                    '+transactionDate.toString()}</Text>
+              <Text style={styles.subtitle}>{'Particular:             '+particular}</Text>
+              <Text style={styles.subtitle}>{'Amount:               PHP'+amount}</Text>
+            </View>
+            <View style={styles.section3}>
+          <Text>{'Generated from BITS Financial Management System'}</Text>
+        </View>
+          </Page>
+        </Document>
+     
+   );
+
+   const result = await pdf(MyDoc).toBlob();
+   setPdfBlob(result);
+    
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+  }
+};
+  const handleSendPdf = async () => {
+    try {
+      if (!pdfBlob) {
+        console.error('PDF Blob is missing.');
+        return;
+      }
+  
+      // Log the content and type of the PDF blob
+      console.log('PDF Blob Content:', pdfBlob);
+      console.log('PDF Blob Type:', pdfBlob.type);
+  
+      // Create a FormData object and append the PDF blob
+      const formData = new FormData();
+      formData.append('pdfFile', pdfBlob, 'invoice.pdf');
+      formData.append('email',studentEmail)
+  
+      // Make a POST request using axios
+      const response = await axios.post('http://localhost:8001/transaction/send-pdf-email', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
+      console.log('PDF sent successfully!', response.data);
+    } catch (error) {
+      console.error('Error sending PDF:', error);
+    }
+  };
 
   const clearForm = () => {
     setTransactionType('');
@@ -193,6 +319,7 @@ useEffect(() => {
     setRemark('');
     setStudentNumber('');
     setStudentName('');
+    setStudentEmail('');
     setOtherParticular('');
     setImageFile('');
   };
@@ -202,6 +329,7 @@ useEffect(() => {
 
   async function submitForm(event) {
     event.preventDefault();
+   
     const form = event.currentTarget;
     if (form.checkValidity() === false) {
       event.preventDefault();
@@ -328,8 +456,13 @@ useEffect(() => {
           },
         });
 
-      if (response.data === 'Success') {
+      if (response.data.valid) {
         console.log('Success'+count.igp);
+        
+        setTransactionId(response.data.transactionId);
+        console.log("TRANSACTION ID:" +transactionId)
+        generateAndSetPdf();
+        handleSendPdf();
         handleModalShow();
         clearForm();
       } else {

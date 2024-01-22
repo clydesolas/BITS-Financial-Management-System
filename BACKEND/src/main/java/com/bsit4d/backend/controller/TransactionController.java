@@ -4,14 +4,20 @@ import com.bsit4d.backend.model.*;
 //import com.bsit4d.backend.service.ExcelTransactionService;
 import com.bsit4d.backend.service.TransactionService;
 import com.bsit4d.backend.service.UserService;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.InputStreamSource;
 import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -225,6 +231,26 @@ public class TransactionController {
     @GetMapping("/updateLogs")
     public List<TransactionModel> getAllTransactionsWithVersions() {
         return  transactionService.getAllTransactionsWithVersions();
+    }
+
+    @Autowired
+    private JavaMailSender javaMailSender;
+
+    @PostMapping("/send-pdf-email")
+    public String sendPdfEmail(
+            @RequestPart("pdfFile") MultipartFile pdfFile,
+            @RequestParam("email") String email
+    ) {
+        try {
+            byte[] pdfContent = pdfFile.getBytes();
+            // Send email with attachment
+            transactionService.sendEmailWithAttachment(email, "Receipt", "PDF generated receipt from BITS Financial Management System.", pdfContent, "invoice.pdf");
+
+            return "Email sent successfully!";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error sending email.";
+        }
     }
 
 

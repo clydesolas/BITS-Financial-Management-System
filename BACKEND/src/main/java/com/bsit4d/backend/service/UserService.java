@@ -132,9 +132,9 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    public List<LoginHistoryModel> findLoginHistory() {
+    public List<String> findLoginHistory() {
         try {
-            List<LoginHistoryModel> loginHistoryList = loginHistoryRepository.findByIdNumber(Long.valueOf(getLoggedInUserDetails().getUsername()));
+            List<String> loginHistoryList = loginHistoryRepository.findDistinctLogDateByidNumber(Long.valueOf(getLoggedInUserDetails().getUsername()));
             Collections.reverse(loginHistoryList);
             return loginHistoryList;
         } catch (Exception e) {

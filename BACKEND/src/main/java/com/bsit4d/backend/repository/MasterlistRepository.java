@@ -21,7 +21,7 @@ public interface MasterlistRepository extends JpaRepository<MasterlistModel, Lon
     @Modifying
     @Query(value = "UPDATE masterlist\n" +
             "SET status = 'ARCHIVED'\n" +
-            "WHERE DATEDIFF(CURDATE(), dateAdded) >= 4 AND status = 'ENROLLED' LIMIT 1;\n", nativeQuery = true)
+            "WHERE MONTH(CURDATE()) - MONTH(dateAdded) >= 4 AND status = 'ENROLLED' LIMIT 1;\n", nativeQuery = true)
     void updateStatusBasedOnDate();
 }
 

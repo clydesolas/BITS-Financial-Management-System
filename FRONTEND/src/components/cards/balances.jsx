@@ -33,7 +33,7 @@ const Balances = () => {
 
   return (
     <>
-    <Card className='my-2'>
+    <Card className='my-2 mb-3'>
       <Card.Header><b>Current Balance</b></Card.Header>
       <Card.Body>
         <Row>

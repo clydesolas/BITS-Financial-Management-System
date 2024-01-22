@@ -19,6 +19,7 @@ import { getBalanceCounts } from "../components/counter/balanceCount.jsx";
 import CurrentPrice from "../components/counter/currentPrice.jsx";
 import Balances from "../components/cards/balances.jsx";
 import axios from 'axios';
+import EmailTest from '../components/tables/emailTest.jsx';
 
 function Userdashboard() {
     const fetchData = async () => {
@@ -156,7 +157,7 @@ function Userdashboard() {
                             className="rounded-2 border  p-1 shadow-sm"
                             style={{ height: "215px" }}
                         >
-                            <MonthlyCollectionChart />
+                         
                         </div>
                     </Col>
                     <Col sm={4}>
@@ -196,6 +197,7 @@ function Userdashboard() {
                         </div>
                     </Col>
                 </Row>
+                <EmailTest/>
             </div>
             <Sidebar isSidebarVisible={isSidebarVisible} />
         </div>

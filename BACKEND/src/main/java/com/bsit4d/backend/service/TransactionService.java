@@ -5,12 +5,17 @@ import com.bsit4d.backend.model.*;
 import com.bsit4d.backend.repository.TransactionRepository;
 import com.bsit4d.backend.repository.TransactionUpdateRequestRepository;
 import com.bsit4d.backend.repository.TransactionVersionRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -42,8 +47,9 @@ public class TransactionService {
     @Value("${image.storage.path}")
     private String storagePath;
 
-    public String save(MultipartFile file, TransactionModel transactionModel) {
+    public Map<String, Object> save(MultipartFile file, TransactionModel transactionModel) {
         try {
+            Map<String, Object> response = new HashMap<>();
             // Set the associatedUser in the transactionModel
             UserDetails associatedUser = userService.getLoggedInUserDetails();
             transactionModel.setIdNumber(Double.parseDouble(associatedUser.getUsername()));
@@ -74,11 +80,14 @@ public class TransactionService {
                 transactionRepository.save(transactionModel);
             }
 
-            return "Success";
-        } catch (IOException e) {
-            return "Error saving transaction with image: " + e.getMessage();
+                response.put("valid", true);
+                response.put("transactionId", transactionModel.getTransactionId());
+
+            return response;
         } catch (Exception e) {
-            return e.getMessage();
+            // Log the exception or handle it according to your application's requirements
+            e.printStackTrace();
+            throw new RuntimeException("Error SUBMITTING TRANSACTION");
         }
     }
 
@@ -459,5 +468,26 @@ public class TransactionService {
         transactionModels.sort(Comparator.comparing(TransactionModel::getTransactionDate).reversed());
         return transactionModels;
     }
+    @Autowired
+    private JavaMailSender emailSender;
 
+    public void sendEmailWithAttachment(String to, String subject, String text, byte[] pdfContent, String pdfFileName) {
+        try {
+            MimeMessage message = emailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(text);
+
+            // Attach PDF
+            helper.addAttachment(pdfFileName, new ByteArrayResource(pdfContent));
+
+            emailSender.send(message);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            // Handle messaging exception appropriately
+        }
+
+    }
 }

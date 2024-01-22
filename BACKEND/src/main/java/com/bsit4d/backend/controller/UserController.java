@@ -121,9 +121,9 @@ public class UserController {
     }
 
     @GetMapping("/loginHistory")
-    public ResponseEntity<List<LoginHistoryModel>> getAllLoginHistory() {
+    public ResponseEntity<List<String>> getAllLoginHistory() {
         try {
-            List<LoginHistoryModel> loginHistory = userService.findLoginHistory();
+            List<String> loginHistory = userService.findLoginHistory();
             return new ResponseEntity<>(loginHistory, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();

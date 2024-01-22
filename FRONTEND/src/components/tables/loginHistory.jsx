@@ -11,7 +11,8 @@ const LoginHistory = () => {
     const fetchLoginHistory = async () => {
       try {
         const response = await axios.get('http://localhost:8001/loginHistory');
-        setLoginHistory(response.data);
+        const sortedDates = response.data.sort((a, b) => new Date(b) - new Date(a));
+        setLoginHistory(sortedDates);
       } catch (error) {
         console.error('Error fetching login history:', error);
       }
@@ -21,7 +22,7 @@ const LoginHistory = () => {
   }, []);
 
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
+    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric'};
     return new Date(dateString).toLocaleDateString('en-US', options);
   };
 
@@ -35,8 +36,8 @@ const LoginHistory = () => {
        
         <tbody>
           {loginHistory.map((entry) => (
-            <tr key={entry.id}>
-              <td>{formatDate(entry.logDate)}</td>
+            <tr key={entry}>
+              <td>{formatDate(entry)}</td>
             </tr>
           ))}
         </tbody>

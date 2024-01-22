@@ -243,6 +243,7 @@ public class MasterlistService {
             if (masterlist.isPresent()) {
                 response.put("valid", true);
                 response.put("name", masterlist.get().getFirstName()+' '+masterlist.get().getLastName());
+                response.put("email", masterlist.get().getFirstName().trim().toLowerCase() + '.' + masterlist.get().getLastName().toLowerCase() + "@cvsu.edu.ph");
                 response.put("academicYear", masterlist.get().getAcademicYear());
                 response.put("semester",masterlist.get().getSemester());
             } else {

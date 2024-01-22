@@ -50,18 +50,17 @@ const ReportTable = () => {
     try {
       let url = 'http://localhost:8001/transaction/fetchAll';
 
-      if (selectedAllocationType === 'all' && selectedTransactionType !== 'all' && startDate && endDate) {
+      if (selectedAllocationType == 'all' && selectedTransactionType != 'all' && startDate && endDate) {
         url = `http://localhost:8001/transaction/findByDateRange?startDate=${startDate}&endDate=${endDate}&transactionTypes=${selectedTransactionType}`;
-      } else if (selectedAllocationType !== 'all' && selectedTransactionType === 'all' && startDate && endDate) {
+        
+      } else if (selectedAllocationType != 'all' && selectedTransactionType == 'all' && startDate && endDate) {
         url = `http://localhost:8001/transaction/findByDateRange?startDate=${startDate}&endDate=${endDate}&allocationTypes=${selectedAllocationType}`;
-      } else if (selectedAllocationType === 'all' && selectedTransactionType === 'all' && startDate && endDate) {
-        url = `http://localhost:8001/transaction/findByDateRange?startDate=${startDate}&endDate=${endDate}`;
-      } else if(selectedAllocationType !== 'all' && selectedTransactionType !== 'all' && startDate && endDate){
+      } else if (selectedAllocationType != 'all' && selectedTransactionType != 'all' && startDate && endDate) {
+        url = `http://localhost:8001/transaction/findByDateRange?startDate=${startDate}&endDate=${endDate}&allocationTypes=${selectedAllocationType}&transactionTypes=${selectedTransactionType}`;
+      } else {
         url = `http://localhost:8001/transaction/findByDateRange?startDate=${startDate}&endDate=${endDate}`;
       }
-      else{
-        url = 'http://localhost:8001/transaction/fetchAll';
-      }
+      console.log(selectedTransactionType);
       console.log('API Request URL:', url); // Add this line to log the API request URL
 
       const response = await axios.get(url);
@@ -266,10 +265,10 @@ const ReportTable = () => {
 
         <OverlayTrigger
           placement="top"
-          overlay={<Tooltip id={`tooltip-history-${row.transactionId}`}>Transaction History</Tooltip>}
+          overlay={<Tooltip id={`tooltip-history-${row.transactionId}`}>Transaction Details</Tooltip>}
         >
          <Button variant='link' size='md' onClick={() => handleOpenTransactionVersionModal(row)}>
-         <Icon.ClockHistory variant='dark'/>
+         <Icon.MenuButton variant='dark'/>
         </Button>
         </OverlayTrigger>
         </>
@@ -369,6 +368,7 @@ const ReportTable = () => {
         persistTableHead={true}
         fixedHeader={true}
         fixedHeaderScrollHeight='600px'
+        onRowClicked={handleOpenTransactionVersionModal}
       />
       <TransactionVersionModal
         showTransactionVersionModal={showTransactionVersionModal}

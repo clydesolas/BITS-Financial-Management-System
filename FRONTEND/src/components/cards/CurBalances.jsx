@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, Row, Col } from 'react-bootstrap';
 import * as Icon from 'react-bootstrap-icons';
 
-const Balances = () => {
+const CurBalances = () => {
   return (
     <Card>
       <Card.Header>Current Balance</Card.Header>
@@ -41,4 +41,4 @@ const Balances = () => {
   );
 };
 
-export default Balances;
+export default CurBalances;

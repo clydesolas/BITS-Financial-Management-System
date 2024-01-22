@@ -20,7 +20,6 @@ public class LoginHistoryModel {
 
     @Column(name = "dateAdded", nullable = false, updatable = false)
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime logDate;
     private Long idNumber;
 
