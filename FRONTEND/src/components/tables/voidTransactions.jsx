@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Form, Container, Modal, Badge, Card, Row, Col } from 'react-bootstrap';
 import { ArrowRightCircleFill } from 'react-bootstrap-icons';
 import '../../assets/css/global.css';
+import VoidTransactionsButton from '../modals/voidTransactionsButton';
 
 const VoidTransactions = () => {
   const [voidTransactions, setVoidTransactions] = useState([]);
@@ -175,13 +176,14 @@ const VoidTransactions = () => {
 
   return (
     <Card className="my-3">
-      <Card.Header>
+      <Card.Header className='d-flex justify-content-between'>
         <h6 className='px-2 my-0'>
           Void Requests &nbsp;
           <Badge pill variant="success" className="bg-warning">
             {voidTransactions.length}
-          </Badge>
+          </Badge> 
         </h6>
+        <VoidTransactionsButton/>
       </Card.Header>
       <Card.Body style={{ maxHeight: '350px', height: '105px', overflowY: 'auto' }}>
         <ul style={{ listStyleType: 'none', padding: 0 }}>
@@ -212,7 +214,7 @@ const VoidTransactions = () => {
       {/* Modal for displaying detailed information and approval form */}
       <Modal show={showModal} onHide={closeModal} centered className='modal-lg ' >
         <Modal.Header  className="container-bg2" closeButton>
-          <Modal.Title>Transaction ID:  {selectedTransaction && ( selectedTransaction.transactionId)}</Modal.Title>
+          <Modal.Title>Void Transaction ID:  {selectedTransaction && ( selectedTransaction.transactionId)}</Modal.Title>
         </Modal.Header>
         <Modal.Body className="container-bg2">
           {selectedTransaction && ( 
@@ -232,7 +234,7 @@ const VoidTransactions = () => {
                     name="approvalRadio"
                     onChange={() => handleApprovalChange('ACCEPT')}
                     checked={approvalOption === 'ACCEPT'}
-                    className="btn btn-primary m-3"
+                    className="btn btn-warning  mx-3 px-5"
                   />
                   <Form.Check
                     type="radio"
@@ -241,7 +243,7 @@ const VoidTransactions = () => {
                     name="approvalRadio"
                     onChange={() => handleApprovalChange('CANCEL')}
                     checked={approvalOption === 'CANCEL'}
-                    className="btn btn-danger m-3"
+                    className="btn btn-secondary  mx-3 px-5"
                   />
                 </Form.Group>
               </Form>

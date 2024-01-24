@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 ChartJS.register(
   CategoryScale,
@@ -17,36 +18,44 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ChartDataLabels
 );
 
 const options = {
-    scales:{
-      x: {
-        ticks: {
-            color: '#62735e'
-        },
-    },
-   y: {
+  scales: {
+    x: {
       ticks: {
-          color: '#62735e'
+        color: '#62735e',
       },
-  }
+    },
+    y: {
+      ticks: {
+        color: '#62735e',
+      },
+    },
   },
   responsive: true,
   plugins: {
-     legend: {
+    legend: {
       labels: {
-          color: '#62735e'
-          }
+        color: '#62735e',
       },
+    },
     title: {
       display: true,
       text: 'Monthly Collection Cashflow',
-      color: '#536150', 
+      color: '#536150',
     },
-  
-  }
+    datalabels: {
+      display: true,
+      color: 'black',
+      font: {
+        weight: 'bold',
+      },
+      formatter: (value) => value, // Display the raw value (count) as the label
+    },
+  },
 };
 
 const MonthlyCollectionChart = () => {
@@ -71,7 +80,7 @@ const MonthlyCollectionChart = () => {
 
     // Cleanup function to clear the interval on component unmount
     return () => clearInterval(intervalId);
-  }, []);  
+  }, []);
 
   if (!data) {
     return <div>Loading...</div>;
@@ -82,34 +91,33 @@ const MonthlyCollectionChart = () => {
   }
 
   if (!Array.isArray(data) || data.length === 0) {
-    return <>
-    <div className='fw-bold text-black-50 my-4 py-5  d-flex justify-content-center'> 
+    return (
+      <div className='fw-bold text-black-50 my-4 py-5  d-flex justify-content-center'>
         No chart data available
-    </div>
-    </>;
+      </div>
+    );
   }
 
   const chartData = {
-    labels: data.map(entry => entry.month),
+    labels: data.map((entry) => entry.month),
     datasets: [
       {
         label: 'Total Inflows',
-        data: data.map(entry => entry.cashInflows),
+        data: data.map((entry) => entry.cashInflows),
         backgroundColor: 'rgba(60, 179, 113, 0.5)', // Green color
       },
       {
         label: 'Total Outflows',
-        data: data.map(entry => entry.cashOutflows),
+        data: data.map((entry) => entry.cashOutflows),
         backgroundColor: 'rgba(128, 128, 0, 0.5)', // Olive color
       },
       {
         label: 'Cash on Hands',
-        data: data.map(entry => entry.cashOnHands),
+        data: data.map((entry) => entry.cashOnHands),
         backgroundColor: 'rgba(107, 142, 35, 0.5)', // Olive Green color
       },
     ],
   };
-  
 
   return (
     <div>

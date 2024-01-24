@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Form, InputGroup, Card, Button, Modal, Row, Col, Alert } from 'react-bootstrap';
+import { Form, InputGroup, Card, Button, Modal, Row, Col, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import * as Icon from 'react-bootstrap-icons';
-import '../../assets/css/global.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 
 const PriceForm = () => {
   const [membershipFee, setMembershipFee] = useState(0);
@@ -13,19 +11,40 @@ const PriceForm = () => {
   const [isEditingMembershipFee, setIsEditingMembershipFee] = useState(false);
   const [isEditingShirtPrice, setIsEditingShirtPrice] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
+  const [membershipFeePending, setMembershipFeePending] = useState(false);
+  const [shirtPricePending, setShirtPricePending] = useState(false);
 
   useEffect(() => {
-    // Fetch default values from the API
-    axios.defaults.withCredentials = true;
-    axios.get('http://localhost:8001/price/get')
-      .then(response => {
-        const { membershipFee: defaultMembershipFee, shirtPrice: defaultShirtPrice } = response.data;
+    const fetchData = async () => {
+      try {
+        // Fetch default values from the API
+        const responseDefault = await axios.get('http://localhost:8001/price/get');
+        const { membershipFee: defaultMembershipFee, shirtPrice: defaultShirtPrice } = responseDefault.data;
         setMembershipFee(defaultMembershipFee);
         setShirtPrice(defaultShirtPrice);
-      })
-      .catch(error => {
-        console.error('Error fetching default values:', error);
-      });
+
+        // Fetch pending requests from the API
+        const responsePending = await axios.get('http://localhost:8001/price/pending');
+        const pendingRequests = responsePending.data;
+        setMembershipFeePending(pendingRequests.some(request => request.type === 'membershipFee'));
+        setShirtPricePending(pendingRequests.some(request => request.type === 'shirtPrice'));
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    // Fetch data initially
+    fetchData();
+
+    // Fetch updates every 10 seconds
+    const intervalId = setInterval(() => {
+      fetchData();
+    }, 10000);
+
+    return () => {
+      // Clear the interval when the component unmounts
+      clearInterval(intervalId);
+    };
   }, []);
 
   const handleEditMembershipFee = () => {
@@ -41,133 +60,150 @@ const PriceForm = () => {
     setIsEditingShirtPrice(false);
   };
 
-   const handleMembershipFeeChange = (e) => {
-    const newValue = parseInt(e.target.value, 10);
-    if (!isNaN(newValue) && newValue >= 1) {
-      setMembershipFee(newValue);
-    } else {
-      // If the input is less than 1 or not a number, set it to 1
-      setMembershipFee(1);
-    }
-  };
-
-  const handleShirtPriceChange = (e) => {
-    const newValue = parseInt(e.target.value, 10);
-    if (!isNaN(newValue) && newValue >= 1) {
-      setShirtPrice(newValue);
-    } else {
-      // If the input is less than 1 or not a number, set it to 1
-      setShirtPrice(1);
-    }
-  };
-
   const handleOk = async () => {
-    if  (!isNaN(membershipFee) && membershipFee >= 1 && !isNaN(shirtPrice) && shirtPrice >= 1)
-    {
+    if (!isNaN(membershipFee) && membershipFee >= 1 && !isNaN(shirtPrice) && shirtPrice >= 1) {
       try {
-        // Update values in the API
-        await axios.put('http://localhost:8001/price/update', {
-          membershipFee,
-          shirtPrice,
-        });
-        toast.success("Price is updated successfully!'")
+        // Check if the membershipFee is edited
+        if (isEditingMembershipFee) {
+          await axios.post('http://localhost:8001/price/insert', {
+            type: 'membershipFee',
+            price: membershipFee,
+          });
+        }
+
+        // Check if the shirtPrice is edited
+        if (isEditingShirtPrice) {
+          await axios.post('http://localhost:8001/price/insert', {
+            type: 'shirtPrice',
+            price: shirtPrice,
+          });
+        }
+
+        toast.success("Price update has been requested to the auditor!");
         setIsEditingMembershipFee(false);
         setIsEditingShirtPrice(false);
+
+        // Trigger a data fetch after successful update
+        fetchData();
       } catch (error) {
         console.error('Error updating prices:', error);
-        toast.error("Failed to update price.");
-  }
-}
-  else{
-    toast.error("Empty fields.");
-  }
-
+        toast.error("You already have a pending price update requests.");
+      }
+    } else {
+      toast.error("Invalid input values.");
+    }
   };
 
   const handleCloseAlert = () => {
     setShowAlert(false);
   };
 
+  const renderTooltip = (text) => (
+    <Tooltip id="button-tooltip" placement="top">
+      {text}
+    </Tooltip>
+  );
+
   return (
     <div className="container my-2 p-0 m-0">
-        <ToastContainer/>
-        
-        <Card>
-          <Card.Header className='fw-bold'>Current Price for</Card.Header>
-          <Row className='m-1'>
-          <Col sm={6}>
-          <Card className="py-0">
-            <Card.Body className='container-bg2 rounded-2 pt-1 pb-3'>
-              <Form>
-                <InputGroup className='d-flex'>
-                  <Form.Label htmlFor="membershipFee" className="me-2 mb-0 d-flex  align-items-center">
-                  Membership Fee:
-                  </Form.Label>
-                  
-                  <Form.Control className='container-bg2 '
-                    type="number"
-                    id="membershipFee"
-                    value={membershipFee}
-                    required
-                    placeholder={`Current: ${membershipFee}`}
-                    onInput={handleMembershipFeeChange}
-                    min="50"
-                    onChange={(e) => setMembershipFee(e.target.value)}
-                    readOnly={!isEditingMembershipFee}
-                  />
-                <InputGroup.Text className="py-0 px-1">
-                    {isEditingMembershipFee ? (
-                      <>
-                       <Icon.Check className="text-success fs-3 pointer" onClick={handleOk} />
-                      <Icon.X className="fs-3 ms-2 pointer" onClick={handleExitEditMode} />
-                      </>
-                    ) : (
-                      <Icon.PencilSquare className="mx-2 pointer" onClick={handleEditMembershipFee} />
-                    )}
-                  </InputGroup.Text>
+      <ToastContainer />
 
-                </InputGroup>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
+      <Card>
+        <Card.Header className='fw-bold'>Current Price for</Card.Header>
+        <Row className='m-1'>
           <Col sm={6}>
-          <Card className="py-0">
-            <Card.Body className='container-bg2 rounded-2 pt-1 pb-3'>
-              <Form>
-              <InputGroup >
-                  <Form.Label htmlFor="shirtPrice" className="me-2 mb-0 d-flex align-items-center">
-                    Organization Shirt:
-                  </Form.Label>
-                 
-                  <Form.Control className='container-bg2 '
-                    type="number"
-                    id="shirtPrice"
-                    value={shirtPrice}
-                    required
-                    placeholder={`Current: ${shirtPrice}`}
-                    onInput={handleShirtPriceChange}
-                    onChange={(e) => setShirtPrice(e.target.value)}
-                    readOnly={!isEditingShirtPrice}
-                  />
-                   <InputGroup.Text className="py-0 px-1">
-                    {isEditingShirtPrice ? (
-                      <>
-                      <Icon.Check className="text-success fs-3 pointer" onClick={handleOk} />
-                      <Icon.X className="fs-3 ms-2 pointer" onClick={handleExitEditMode} />
-                      </>
-                    ) : (
-                      <Icon.PencilSquare className="mx-2 pointer" onClick={handleEditShirtPrice} />
-                    )}
-                  </InputGroup.Text>
-                </InputGroup>
-              </Form>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+            <Card className='py-0'>
+              <Card.Body className='container-bg2 rounded-2 pt-0 pb-3'>
+                {membershipFeePending ? (
+                  <>
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={renderTooltip("You have submitted a price update request to the auditor.")}
+                    >
+                      <div className='text-bg-warning text-center rounded-bottom-pill px-1 fw-bold' style={{ fontSize: "9px" }}>
+                        Price update request
+                      </div>
+                    </OverlayTrigger>
+                  </>
+                ) : ("")}
+                <Form>
+                  <InputGroup className='d-flex'>
+                    <Form.Label htmlFor="membershipFee" className="me-2 mb-0 d-flex align-items-center">
+                      Membership Fee:
+                    </Form.Label>
+                    <Form.Control
+                      className='container-bg2'
+                      type="number"
+                      id="membershipFee"
+                      value={membershipFee}
+                      required
+                      placeholder={`Current: ${membershipFee}`}
+                      onChange={(e) => setMembershipFee(e.target.value)}
+                      readOnly={!isEditingMembershipFee}
+                    />
+                    <InputGroup.Text className="py-0 px-1">
+                      {isEditingMembershipFee ? (
+                        <>
+                          <Icon.Check className="text-success fs-3 pointer" onClick={handleOk} />
+                          <Icon.X className="fs-3 ms-2 pointer" onClick={handleExitEditMode} />
+                        </>
+                      ) : (
+                        <Icon.PencilSquare className="mx-2 pointer" onClick={handleEditMembershipFee} />
+                      )}
+                    </InputGroup.Text>
+                  </InputGroup>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col sm={6}>
+            <Card className='py-0'>
+              <Card.Body className='container-bg2 rounded-2 pt-0 pb-3'>
+                {shirtPricePending ? (
+                  <>
+                    <OverlayTrigger
+                      placement="top"
+                      overlay={renderTooltip("You have submitted a price update request to the auditor.")}
+                    >
+                      <div className='text-bg-warning text-center rounded-bottom-pill px-1 fw-bold' style={{ fontSize: "9px" }}>
+                        Price update request
+                      </div>
+                    </OverlayTrigger>
+                  </>
+                ) : ("")}
+                <Form>
+                  <InputGroup >
+                    <Form.Label htmlFor="shirtPrice" className="me-2 mb-0 d-flex align-items-center">
+                      Organization Shirt:
+                    </Form.Label>
+                    <Form.Control
+                      className='container-bg2'
+                      type="number"
+                      id="shirtPrice"
+                      value={shirtPrice}
+                      required
+                      placeholder={`Current: ${shirtPrice}`}
+                      onChange={(e) => setShirtPrice(e.target.value)}
+                      readOnly={!isEditingShirtPrice}
+                    />
+                    <InputGroup.Text className="py-0 px-1">
+                      {isEditingShirtPrice ? (
+                        <>
+                          <Icon.Check className="text-success fs-3 pointer" onClick={handleOk} />
+                          <Icon.X className="fs-3 ms-2 pointer" onClick={handleExitEditMode} />
+                        </>
+                      ) : (
+                        <Icon.PencilSquare className="mx-2 pointer" onClick={handleEditShirtPrice} />
+                      )}
+                    </InputGroup.Text>
+                  </InputGroup>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
       </Card>
-     
+
       <Modal show={showAlert} onHide={handleCloseAlert}>
         <Modal.Header closeButton>
           <Modal.Title>Update Status</Modal.Title>

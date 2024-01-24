@@ -60,7 +60,7 @@ function Sidebar({ isSidebarVisible }) {
                         </NavLink>
                     </li>
                 )}
-                {accountDetails.role === "TREASURER" && (
+                {accountDetails.role === "ADMIN" && (
                     <li>
                         <NavLink
                             exact
@@ -71,7 +71,7 @@ function Sidebar({ isSidebarVisible }) {
                                     : ""
                             }
                         >
-                            <Icon.CurrencyExchange className="sidebar-icons" />
+                            <Icon.FolderSymlink className="sidebar-icons" />
                             Masterlist
                         </NavLink>
                     </li>

@@ -10,6 +10,9 @@ import {
 import ProfileBody from "../components/non-reusable-components/ProfileBody.jsx";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../assets/css/global.css";
+import { Container, Form, Button,  Card, Row, Col } from 'react-bootstrap';
+
+import ChangePassword from "../components/forms/changePassword.jsx";
 
 function Profile() {
     const accountDetails = LoginDetails();
@@ -115,7 +118,7 @@ function Profile() {
             >
                 <MainGreetings />
                 <div className="">
-                    {accountDetails.role !== "ADMIN" && (
+                    {/* {accountDetails.role !== "ADMIN" && (
                         <div className="profile-btn-wrapper d-flex justify-content-end">
                             <button
                                 className="btn btn-outline-danger mb-3"
@@ -124,23 +127,31 @@ function Profile() {
                                 Deactivate Account
                             </button>
                         </div>
-                    )}
-                    <div className="profile-content">
-                        <div className="profile-details-header p-2">
-                            <h4 className="p-0 m-0 text-white">
-                                PERSONAL INFORMATION
-                            </h4>
+                    )} */}
+                    <Row>
+                        <Col lg="7">
+                            <div className="profile-content">
+                            <div className="profile-details-header p-2">
+                                <h4 className="p-0 m-0 text-white">
+                                    PERSONAL INFORMATION
+                                </h4>
+                            </div>
+                            {profileBodyFields.map(({ key, label, value }) => (
+                                <ProfileBody
+                                    key={key}
+                                    label={label.toUpperCase()}
+                                    value={value}
+                                    showIcon={accountDetails.role === "ADMIN"}
+                                    onClick={() => handleShow(key)}
+                                />
+                            ))}
                         </div>
-                        {profileBodyFields.map(({ key, label, value }) => (
-                            <ProfileBody
-                                key={key}
-                                label={label.toUpperCase()}
-                                value={value}
-                                showIcon={accountDetails.role === "ADMIN"}
-                                onClick={() => handleShow(key)}
-                            />
-                        ))}
-                    </div>
+                        </Col>
+                        <Col lg="5">
+                            <ChangePassword/>
+                        </Col>
+                    </Row>
+                    
                 </div>
                 {inputModals}
                 <Modal

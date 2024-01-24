@@ -27,11 +27,11 @@ const LoginHistory = () => {
   };
 
   return (
-    <Container>
+    <Container className='mx-0 px-0'>
       <div className='d-flex justify-content-center mb-2'>
-        <b className='text-dark-50'>Login History</b>
+        <b className='text-secondary'>Login History</b>
       </div>
-      <Container className="mt-3" style={{ height: '220px', overflowY: 'auto' }}>
+      <Container className="mt-3 px-0 mx-0" style={{ height: '220px', overflowY: 'auto' }}>
       <Table striped hover>
        
         <tbody>

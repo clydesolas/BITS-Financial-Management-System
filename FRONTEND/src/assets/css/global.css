@@ -253,14 +253,14 @@ ul .sub-menu {
 }
 /* PROFILE */
 .profile-content {
-    font-size: 1.125rem;
+    font-size: 1rem;
 }
 .profile-details-header {
     background-color: var(--darkgreen);
 }
 .profile-body {
     display: grid;
-    grid-template-columns: 0.2fr 1fr;
+    grid-template-columns: 0.4fr 1fr;
     border-bottom: 3px solid var(--darkgreen);
     padding: 1.5rem 2rem 0.25rem 2rem;
     background-color: var(--grey);

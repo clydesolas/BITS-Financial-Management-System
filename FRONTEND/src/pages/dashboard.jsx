@@ -16,10 +16,13 @@ import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import LoginHistory from "../components/tables/loginHistory.jsx";
 import OfficerCount from "../components/counter/officerCount.jsx";
 import { getBalanceCounts } from "../components/counter/balanceCount.jsx";
-import CurrentPrice from "../components/counter/currentPrice.jsx";
+import CurrentPrice2 from "../components/counter/currentPrice2.jsx";
 import Balances from "../components/cards/balances.jsx";
 import axios from 'axios';
 import EmailTest from '../components/tables/emailTest.jsx';
+import MembershipFeeChart from "../components/charts/membershipFeeChart.jsx";
+import OrgShirtChart from "../components/charts/orgShirtChart.jsx";
+import RecentTransactions from "../components/tables/recentTranction.jsx";
 
 function Userdashboard() {
     const fetchData = async () => {
@@ -157,7 +160,7 @@ function Userdashboard() {
                             className="rounded-2 border  p-1 shadow-sm"
                             style={{ height: "215px" }}
                         >
-                         
+                         <MonthlyCollectionChart/>
                         </div>
                     </Col>
                     <Col sm={4}>
@@ -181,23 +184,40 @@ function Userdashboard() {
                   {/* <Col sm={8}>
                     <Balances/>
                     </Col> */}
-                    <Col sm={3}>
-                    <div className="pt-2">
-                            <CurrentPrice />
+                    <Col sm={2}>
+                        <div className="pt-0 mb-4">
+                        {/* <MembershipFeeChart/> */}
+                            <CurrentPrice2 />
                         </div>
-                        </Col>
+                    </Col>
+                    <Col sm={5}>
+                    <div className="rounded-2 border  p-1 shadow-sm">
+                        <MembershipFeeChart/>
+                        </div>
+                    </Col>
+                    <Col sm={5}>
+                    <div className="rounded-2 border  p-1 shadow-sm">
+                        <OrgShirtChart/>
+                        </div>
+                    </Col>
+                    <Col sm={5}>
+                        <div className="rounded-2 border  p-1 shadow-sm">
+                            <RecentTransactions />
+                        </div>
+                    </Col>   
                     <Col sm={5}>
                         <div className="rounded-2 border  p-1 shadow-sm">
                             <TotalCashflowChart />
                         </div>
                     </Col>
-                    <Col sm={4}>
+                    
+                    <Col sm={2}>
                         <div className="rounded-2 border  p-1 shadow-sm">
                             <LoginHistory />
                         </div>
                     </Col>
                 </Row>
-                <EmailTest/>
+               
             </div>
             <Sidebar isSidebarVisible={isSidebarVisible} />
         </div>

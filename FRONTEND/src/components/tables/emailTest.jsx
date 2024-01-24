@@ -8,8 +8,6 @@ import { Form, Button, Container, Row, Col, InputGroup, FormControl,  OverlayTri
 import { saveAs } from 'file-saver';
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image,PDFViewer, BlobProvider, pdf } from '@react-pdf/renderer';  // Import PDFViewer
 import pdfLogo from '../../assets/img/pdfLogo.png';
-import * as Icon from 'react-bootstrap-icons';
-import '../../assets/css/global.css';
 import coverImage from '../../assets/img/cover.jpg';
 import TransactionVersionModal from '../modals/transactionVersionModal';
 import Balances from '../cards/balances.jsx';
@@ -74,7 +72,6 @@ const styles = StyleSheet.create({
     const generateAndSetPdf = async () => {
       try {
         const MyDoc = (
-      
           <Document>
             <Page size={{ width: 420, height: 298 }} style={styles.page}>
             <Image src={coverImage} style={styles.backgroundImageContainer} />
@@ -98,8 +95,6 @@ const styles = StyleSheet.create({
        
      );
 
-    //  const blobPdf = await pdf(MyDoc);
-    //  blobPdf.updateContainer(MyDoc);
      const result = await pdf(MyDoc).toBlob();
      setPdfBlob(result);
       

@@ -3,6 +3,15 @@ import { Modal, Form, Row, Col, Card } from 'react-bootstrap';
 import DataTable from 'react-data-table-component';
 
 const TransactionVersionModal = ({ showTransactionVersionModal, handleCloseModalVer, selectedRow }) => {
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  const formatDate2 = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
   return (
     <Modal show={showTransactionVersionModal} onHide={handleCloseModalVer} className='modal-lg'>
       <Modal.Header className="container-bg2" closeButton style={{ color: 'white' }}>
@@ -28,9 +37,9 @@ const TransactionVersionModal = ({ showTransactionVersionModal, handleCloseModal
             <Form.Group controlId="formDate"className="mb-3 ">
                   <Form.Label className="mb-0">Transaction Date:</Form.Label>
                   <Form.Control className="mx-0"
-                    type="date" disabled
+                    type="text" disabled
                     
-                    value={selectedRow.transactionDate || selectedRow.transactionDate}
+                    value={formatDate(selectedRow.transactionDate)}
                     onChange={(e) => handleInputChange('transactionDate', e.target.value)}
                   />
                 </Form.Group>
@@ -38,7 +47,7 @@ const TransactionVersionModal = ({ showTransactionVersionModal, handleCloseModal
             <Col sm={6}>
             <Form.Group className="mb-3" controlId="formParticular">
                   <Form.Label>Date Encoded:</Form.Label>
-                  <Form.Control type="text" disabled value={selectedRow.dateAdded} onChange={(e) => handleInputChange('dateAdded', e.target.value)} />
+                  <Form.Control type="text" disabled  value={formatDate(selectedRow.dateAdded)} onChange={(e) => handleInputChange('dateAdded', e.target.value)} />
                 </Form.Group>
             </Col>
             <Col sm={6}>
@@ -53,9 +62,25 @@ const TransactionVersionModal = ({ showTransactionVersionModal, handleCloseModal
                   <Form.Control type="text" disabled value={selectedRow.particular || selectedRow.particular} onChange={(e) => handleInputChange('particular', e.target.value)} />
                 </Form.Group>
             </Col>
-            <Col sm={6}>
+            {selectedRow.particular == 'MEMBERSHIP_FEE' && (
+              <>
+               <Col sm={6}>
+               <Form.Group className="mb-3" controlId="formParticular">
+                     <Form.Label>Student NUmber:</Form.Label>
+                     <Form.Control type="text" disabled value={selectedRow.studentNumber} onChange={(e) => handleInputChange('particular', e.target.value)} />
+                   </Form.Group>
+               </Col>
+               <Col sm={6}>
+               <Form.Group className="mb-3" controlId="formParticular">
+                     <Form.Label>Academic Year :</Form.Label>
+                     <Form.Control type="text" disabled value={"A.Y. "+selectedRow.academicYear+" "+selectedRow.semester} onChange={(e) => handleInputChange('particular', e.target.value)} />
+                   </Form.Group>
+               </Col>
+               </>
+            )}
+            <Col sm={12}>
             <Row>
-                <Col sm={6}>
+                <Col sm={3}>
                 <Form.Group className="mb-3" controlId="formAmount">
                   <Form.Label>Amount:</Form.Label>
                   <Form.Control
@@ -66,7 +91,7 @@ const TransactionVersionModal = ({ showTransactionVersionModal, handleCloseModal
                   />
                   </Form.Group>
                 </Col>
-                <Col sm={6}>
+                <Col sm={2}>
                 <Form.Group className="mb-3" controlId="formQuantity">
                   <Form.Label>Quantity:</Form.Label>
                   <Form.Control
@@ -76,18 +101,28 @@ const TransactionVersionModal = ({ showTransactionVersionModal, handleCloseModal
                   />
                 </Form.Group>
                 </Col>
-                </Row>
-            </Col>
-            <Col sm={6}>
+                <Col sm={3}>
+                <Form.Group controlId="formTotal" className="mb-3">
+                      <Form.Label>Total:</Form.Label>
+                      <Form.Control
+                        type="number" disabled
+                        step="0.01"
+                        value={selectedRow.total !== 0 ? selectedRow.total : selectedRow.total}
+                        onChange={(e) => handleInputChange('total', e.target.value)}
+                      />
+                    </Form.Group>
+                </Col>
+            <Col sm={4}>
             <Form.Group controlId="formTotal" className="mb-3">
-                  <Form.Label>Total:</Form.Label>
+                  <Form.Label>Treasurer Name:</Form.Label>
                   <Form.Control
-                    type="number" disabled
-                    step="0.01"
-                    value={selectedRow.total !== 0 ? selectedRow.total : selectedRow.total}
-                    onChange={(e) => handleInputChange('total', e.target.value)}
+                    type="text" disabled
+                    value={selectedRow.treasurerName? selectedRow.treasurerName : selectedRow.treasurerName}
+                    onChange={(e) => handleInputChange('treasurerName', e.target.value)}
                   />
                 </Form.Group>
+            </Col>
+            </Row>
             </Col>
             <Col sm={6}>
             {selectedRow.transactionType == "OUTFLOW" && (

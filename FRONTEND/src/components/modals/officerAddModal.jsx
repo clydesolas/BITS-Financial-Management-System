@@ -13,145 +13,144 @@ const OfficerAddModal = ({ onAddOfficer }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [validated, setValidated] = useState(false);
-
-  // Generate a temporary password directly
-  const generatedPassword = Math.random().toString(36).substring(2, 10);
-  const [formData, setFormData] = useState({
-    idNumber: '',
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    role: '',
+  let [studentNumber, setStudentNumber] = useState('');
+  const [isStudentNumberValid, setIsStudentNumberValid] = useState('');
+  const [studentName, setStudentName] = useState('');
+  const [studentEmail, setStudentEmail] = useState('');
+  const [studentFirstname, setStudentFirstname] = useState('');
+  const [studentMiddlename, setStudentMiddlename] = useState('');
+  const [studentLastname, setStudentLastname] = useState('');
+  const [academicYear, setAcademicYear] = useState('');
+  const [semester, setSemester] = useState('');
+  const [role, setRole] = useState('');
+    // Generate a temporary password directly
+    const generatedPassword = Math.random().toString(36).substring(2, 10);
+  const formData = {
+    firstName: studentFirstname,
+    middleName: studentMiddlename,
+    lastName: studentLastname,
+    idNumber: studentNumber,
+    role: role,
     status: 'ACTIVE',
-    email: '',
     password: generatedPassword,
-      generatedPassword: generatedPassword,
-  });
-
-  const handleInputChange = (field, value) => {
-    let validatedValue = value;
-  
-    
-  // Email validation
-  if (field === 'email') {
-    const emailRegex =/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (value !== '' && !emailRegex.test(value)) {
-      // setValidated(false);
-      // toast.error('Please enter a valid email address.');
-    }
-  }
-  // Student number validation (9-digit number)
-  if (field === 'idNumber') {
-    const studentNumberRegex = /^\d{0,9}$/;  // Allowing up to 9 digits
-    if (value !== '' && !studentNumberRegex.test(value)) {
-      toast.error('Student number must be a valid number up to 9 digits.');
-      setValidated(false);
-      return;
-    }
-  }
-  
-    // Names validation (letters only)
-    if ((field === 'firstName' || field === 'middleName' || field === 'lastName') && value !== '') {
-      const nameRegex = /^[A-Za-z]+$/;
-      if (!nameRegex.test(value)) {
-        toast.error('Please enter a valid name with letters only.');
-        setValidated(false);
-        return;
-      }
-    }
-  
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [field]: validatedValue,
-    }));
+    generatedPassword: generatedPassword,
+    email: studentEmail
   };
 
  
+  const handleStudentNumberChange = async (e) => {
+    const inputValue = e.target.value;
 
-  const handleAddOfficer = async () => {
+    const isValidInput = /^\d{0,9}$/.test(inputValue) && inputValue.length <= 9;
+
+    if (isValidInput) {
+      setStudentNumber(inputValue);
+
+      // Perform validation against the masterlist API
+      try {
+        const response = await axios.get(`http://localhost:8001/masterlist/validateStudentNumber/${inputValue}`);
+        setIsStudentNumberValid(response.data.valid);
+        setAcademicYear(response.data.academicYear);
+        setSemester(response.data.semester);
+
+        if (response.data.valid) {
+          setStudentFirstname(response.data.firstname);
+          setStudentMiddlename(response.data.middlename);
+          setStudentLastname(response.data.lastname);
+          setStudentEmail(response.data.email);
+        } else {
+          setStudentFirstname('');
+          setStudentMiddlename('');
+          setStudentLastname('');
+          setStudentEmail('');
+        }
+      } catch (error) {
+        console.error('Error validating student number:', error);
+      }
+    }
+  };
+ 
+
+  async function submitForm(event) {
+    event.preventDefault();
+   
     if (
-      formData.idNumber === '' ||
-      formData.firstName === '' ||
-      formData.lastName === '' ||
-      formData.role === '' ||
-      formData.email === ''
+      studentNumber === '' ||
+      studentFirstname === '' ||
+      studentLastname === '' ||
+      role === '' ||
+      studentEmail === ''
     ) {
       toast.error('Please fill in all required fields.');
       return;
     }
 
-  
-
-
     axios.defaults.withCredentials = true;
     try {
       setLoading(true);
+      // Send email
+      const emailData = {
+        email: studentEmail,
+        subject: 'Account Registration',
+        body: `<p>Hello ${studentFirstname}!</p>
+                <p>Welcome to the financial management system. This is your account information:</p>
+                <ul>
+                    <li>ID Number: <b>${studentNumber}</b></li>
+                    <li>Password: <b>${generatedPassword}</b></li>
+                </ul>
+                <p>Please log in and change your temporary password immediately.</p>
+                <p>Thank you!</p>`
+      };
 
-      const response = await axios.post('http://localhost:8001/register', formData);
-
-      if (response.data === 'Registered successfully!') {
-        // Send email
-        const emailData = {
-          email: formData.email,
-          subject: 'Account Registration',
-          body: `<p>Hello ${formData.firstName}!</p>
-                  <p>Welcome to the financial management system. This is your account information:</p>
-                  <ul>
-                      <li>ID Number: <b>${formData.idNumber}</b></li>
-                      <li>Password: <b>${generatedPassword}</b></li>
-                  </ul>
-                  <p>Please log in and change your temporary password immediately.</p>
-                  <p>Thank you!</p>`
-        };
-
-        try {
-          await axios.post('http://localhost:8001/send-email', emailData);
+      try {
+        await axios.post('http://localhost:8001/send-email', emailData);
+        const response = await axios.post('http://localhost:8001/register', formData);
+        if (response.data === 'Registered successfully!') {
           handleClose();
           setShowSuccessModal(true);
           setSuccess(
             ', the student will be notified through their email with their account login detail.'
           );
-        } catch (emailError) {
-          console.error('Error sending email:', emailError);
-          setError(
-            ', but failed to send email. Please notify the student for their account details personally.'
-          );
-          setLoading(false);
-          handleClose();
-          setShowSuccessModal(true);
         }
-      }
-      if (response.data === 'ID number already exists') {
-        toast.error('ID number already exists');
+        if (response.data === 'ID number already exists') {
+          toast.error('ID number already exists');
+          setLoading(false);
+        }
+        else{
+          toast.error(response.data);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error adding officer:', error);
+        toast.error("Error submitting");
         setLoading(false);
       }
-      else{
-        toast.error(response.data);
+      } catch (emailError) {
+        console.error('Error sending email:', emailError);
+        setError(
+          ', but failed to send email. Please notify the student for their account details personally.'
+        );
         setLoading(false);
+        handleClose();
+        setShowSuccessModal(true);
       }
-    } catch (error) {
-      console.error('Error adding officer:', error);
-      toast.error("Error submitting");
-      setLoading(false);
-
-    }
+     
   };
 
   const handleShow = () => setShow(true);
   const handleClose = () => {
     setShow(false);
-    setFormData({
-      idNumber: '',
-      firstName: '',
-      middleName: '',
-      lastName: '',
-      role: '',
-      status: 'ACTIVE',
-      email: '',
-    });
+    setStudentNumber('');
+    setStudentFirstname('');
+    setStudentMiddlename('');
+    setStudentLastname('');
+    setStudentEmail('');
+    setRole('');
+    setValidated(false);
+    setError(null);
+    setSuccess(null);
     setLoading(false);
   };
-
   const handleSuccessModalClose = () => {
     setShowSuccessModal(false);
     setError(null);
@@ -169,42 +168,64 @@ const OfficerAddModal = ({ onAddOfficer }) => {
         </Modal.Header>
         <ToastContainer />
         {/* Form Inside the MODAL */}
-        <Form noValidate validated={validated} style={{ padding: '20px' }}>
+        <Form  id="officerForm" noValidate validated={validated}  style={{ padding: '20px' }}>
           <Row>
             <Col lg="6">
+            <Form.Label><span className='text-danger fs-5'>*</span> Student Number:</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={studentNumber}
+                    pattern="^\d{9}$"
+                    onChange={handleStudentNumberChange}
+                    required
+                    isInvalid={!isStudentNumberValid}
+                    isValid={isStudentNumberValid}
+                  />
+                  <Form.Control.Feedback type="invalid">Invalid student number</Form.Control.Feedback>
+                  <Form.Control.Feedback type="valid" className='fw-bold text-bg-light text-success'>{studentEmail && `Valid`}</Form.Control.Feedback>
+            </Col>
+            <Col lg="6">
               <Form.Group className="mb-2">
-              <Form.Label><span className='text-danger fw-bold fs-6'>*</span>Student Number:</Form.Label>
+              <Form.Label><span className='text-danger fw-bold fs-6'>*</span>Role:</Form.Label>
               <Form.Control
-                type="number"
-                placeholder="Student Number"
-                value={formData.idNumber}
-                onChange={(e) => handleInputChange('idNumber', e.target.value)}
+                as="select"
+                onChange={(e) => setRole(e.target.value)}
+                value={role}
                 required
-              />
+              >
+                <option value="" disabled defaultValue>
+                  Select Role
+                </option>
+                <option value="TREASURER">Treasurer</option>
+                <option value="AUDITOR">Auditor</option>
+                <option value="OTHER_OFFICER">Other Officer</option>
+              </Form.Control>
             </Form.Group>
             </Col>
             <Col lg="6">
                 <Form.Group className="mb-2">
                 <Form.Label><span className='text-danger fw-bold fs-6'>*</span>Email:</Form.Label>
                 <Form.Control
+                className='bg-light'
                   type="email"
                   placeholder="Email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  value={studentEmail}
+                  readOnly
+                  onChange={(e) => setStudentEmail(e.target.value)}
                   required
                 />
-                 <Form.Control.Feedback type="invalid">Invalid student number</Form.Control.Feedback>
-                  <Form.Control.Feedback type="valid" className='fw-bold text-bg-light text-success'>Invalid email format</Form.Control.Feedback>
               </Form.Group>
             </Col>
             <Col lg="6">
                 <Form.Group className="mb-2">
                 <Form.Label><span className='text-danger fw-bold fs-6'>*</span>First Name:</Form.Label>
                 <Form.Control
+                className='bg-light'
                   type="text"
                   placeholder="First Name"
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  value={studentFirstname}
+                  readOnly
+                  onChange={(e) => setStudentFirstname(e.target.value)}
                   required
                 />
               </Form.Group>
@@ -213,10 +234,12 @@ const OfficerAddModal = ({ onAddOfficer }) => {
               <Form.Group className="mb-2">
               <Form.Label>Middle Name:</Form.Label>
               <Form.Control
+              className='bg-light'
                 type="text"
                 placeholder="Middle Name"
-                value={formData.middleName}
-                onChange={(e) => handleInputChange('middleName', e.target.value)}
+                value={studentMiddlename}
+                readOnly
+                onChange={(e) => setStudentMiddlename(e.target.value)}
                 required
               />
               </Form.Group>
@@ -225,32 +248,17 @@ const OfficerAddModal = ({ onAddOfficer }) => {
               <Form.Group className="mb-2">
               <Form.Label><span className='text-danger fw-bold fs-6'>*</span>Last Name:</Form.Label>
               <Form.Control
+              className='bg-light'
                 type="text"
                 placeholder="Last Name"
-                value={formData.lastName}
-                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                value={studentLastname}
+                readOnly
+                onChange={(e) => setStudentLastname(e.target.value)}
                 required
               />
             </Form.Group>
             </Col>
-            <Col lg="6">
-              <Form.Group className="mb-2">
-              <Form.Label><span className='text-danger fw-bold fs-6'>*</span>Role:</Form.Label>
-              <Form.Control
-                as="select"
-                onChange={(e) => handleInputChange('role', e.target.value)}
-                required
-              >
-                <option value="" disabled selected>
-                  Select Role
-                </option>
-                <option value="TREASURER">Treasurer</option>
-                <option value="AUDITOR">Auditor</option>
-                <option value="OFFICER">Officer</option>
-                <option value="OTHER_OFFICER">Other Officers</option>
-              </Form.Control>
-            </Form.Group>
-            </Col>
+            
           </Row>
         </Form>
 
@@ -258,7 +266,7 @@ const OfficerAddModal = ({ onAddOfficer }) => {
           <Button variant="light" onClick={handleClose}>
             Close
           </Button>
-          <Button variant="success" onClick={handleAddOfficer}>
+          <Button variant="success" onClick={submitForm} type="submit" >
             {loading ? (
               <>
                 Loading... <Spinner animation="border" variant="light" size="sm" />

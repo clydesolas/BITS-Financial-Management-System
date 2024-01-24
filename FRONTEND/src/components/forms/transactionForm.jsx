@@ -17,8 +17,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image,PDFViewer, BlobProvider, pdf } from '@react-pdf/renderer';  // Import PDFViewer
 import pdfLogo from '../../assets/img/pdfLogo.png';
+import LoginDetails from '../reusable-components/loginDetails.jsx';
 import coverImage from '../../assets/img/cover.jpg';
-
 
 const TransactionForm = () => {
   const [transactionType, setTransactionType] = useState('');
@@ -45,7 +45,8 @@ const TransactionForm = () => {
   const [studentEmail, setStudentEmail] = useState('');
   const [validated, setValidated] = useState(false);
   const [imageFile, setImageFile] = useState(null);
- 
+  const accountDetails = LoginDetails();
+  const treasurerName = accountDetails.firstName + " " +accountDetails.lastName;
 
   const [count, setCounts] = useState({
     collection: 0,
@@ -105,19 +106,19 @@ useEffect(() => {
   
 
   
-    const fetchPrice = async () => {
-      try {
-        const response = await axios.get('http://localhost:8001/price/get');
-        setMembershipFeePrice(response.data.membershipFee);
-        setOrganizationShirtPrice(response.data.shirtPrice);
-      } catch (error) {
-        console.error('Error fetching membership fee price:', error);
-      }
-    };
-  
-    useEffect(() => {
-      fetchPrice();
-    }, []);
+  const fetchPrice = async () => {
+    try {
+      const response = await axios.get('http://localhost:8001/price/get');
+      setMembershipFeePrice(response.data.membershipFee);
+      setOrganizationShirtPrice(response.data.shirtPrice);
+    } catch (error) {
+      console.error('Error fetching membership fee price:', error);
+    }
+  };
+
+  const intervalId = setInterval(() => {
+    fetchPrice();
+  }, 10000);
   
     const handleAllocationParticularChange = (newAllocationType, newParticular) => {
       
@@ -197,11 +198,8 @@ useEffect(() => {
   const [pdfBlob, setPdfBlob] = useState(null);
   useEffect(() => {
       if (pdfBlob) {
-        // Now you can use pdfBlob
         console.log('PDF Blob is ready:', pdfBlob);
   
-        // Example: You might want to trigger some action, such as sending the PDF, here
-        // handleSendPdf();
       }
     }, [pdfBlob]);
   // Create styles
@@ -259,6 +257,7 @@ const styles = StyleSheet.create({
               <Image src={pdfLogo} style={{ width: '45px', height: '45px', margin: '15px 0 0 15px', padding: '0 0 0 0' }} />
               <Text style={{fontSize: '14px', fontWeight: 'bold' , marginTop: '-35px'}}>{'Builders of Innovative Technologist Society'}</Text>
               <Text style={styles.header}>{'INVOICE RECORD'}</Text>
+              <Text style={styles.header}>{'A.Y. '+academicYear+' '+semester}</Text>
               <Text style={styles.subtitle}>{'Transaction ID:     '+transactionId.toString()}</Text>
               <Text style={styles.subtitle}>{'Date:                    '+transactionDate.toString()}</Text>
               <Text style={styles.subtitle}>{'Particular:             '+particular}</Text>
@@ -274,27 +273,29 @@ const styles = StyleSheet.create({
 
    const result = await pdf(MyDoc).toBlob();
    setPdfBlob(result);
-    
+    return result;
   } catch (error) {
     console.error('Error generating PDF:', error);
   }
 };
-  const handleSendPdf = async () => {
-    try {
-      if (!pdfBlob) {
-        console.error('PDF Blob is missing.');
-        return;
-      }
+const handleSendPdf = async (generatedPdfBlob) => {
+  try {
+    if (!generatedPdfBlob) {
+      console.error('PDF Blob is missing.');
+      return;
+    }
   
-      // Log the content and type of the PDF blob
-      console.log('PDF Blob Content:', pdfBlob);
-      console.log('PDF Blob Type:', pdfBlob.type);
+      console.log('PDF Blob Content:', generatedPdfBlob);
+      console.log('PDF Blob Type:', generatedPdfBlob.type);
   
       // Create a FormData object and append the PDF blob
       const formData = new FormData();
-      formData.append('pdfFile', pdfBlob, 'invoice.pdf');
+      formData.append('pdfFile', generatedPdfBlob, academicYear+'-'+semester+'-'+particular+'-invoice.pdf');
       formData.append('email',studentEmail)
-  
+      if (
+        transactionType === 'INFLOW' &&
+        (particular === 'MEMBERSHIP_FEE' || particular === 'ORGANIZATION_SHIRT')
+      ) {
       // Make a POST request using axios
       const response = await axios.post('http://localhost:8001/transaction/send-pdf-email', formData, {
         headers: {
@@ -303,6 +304,7 @@ const styles = StyleSheet.create({
       });
   
       console.log('PDF sent successfully!', response.data);
+    }
     } catch (error) {
       console.error('Error sending PDF:', error);
     }
@@ -341,29 +343,34 @@ const styles = StyleSheet.create({
 
     try {
       if (transactionType === 'INFLOW' && allocationType === 'DONATION') {
-        particular = allocationType+' RECEIVED'; 
+        // particular = allocationType+' RECEIVED'; 
         orNumber = 'N/A';
         studentNumber= 'N/A';
         academicYear = 'N/A';
         semester= 'N/A';
       }
       if (transactionType === 'INFLOW' && particular === 'OTHERS') {
-        particular = allocationType+' RECEIVED'; 
+        // particular = allocationType+' RECEIVED'; 
         orNumber = 'N/A';
         academicYear = 'N/A';
         semester= 'N/A';
+        studentNumber= 'N/A';
+
       }
       if (transactionType === 'INFLOW' && allocationType === 'COLLECTION' && particular === 'OTHERS') {
         particular = otherParticular; 
         orNumber = 'N/A';
         academicYear = 'N/A';
         semester= 'N/A';
+        studentNumber= 'N/A';
+
       }
       if (transactionType === 'INFLOW' && allocationType === 'IGP' && particular === 'OTHERS' ) {
         particular = otherParticular; 
         orNumber = 'N/A';
         academicYear = 'N/A';
         semester= 'N/A';
+        studentNumber= 'N/A';
       }
       if (transactionType === 'INFLOW' && allocationType === 'COLLECTION' && particular === 'MEMBERSHIP_FEE' && !isStudentNumberValid) {
         toast.error('Invalid student number');
@@ -447,8 +454,9 @@ const styles = StyleSheet.create({
         formData.append('semester', semester);
         formData.append('transactionStatus', 'OK');
         formData.append('auditorRemark', 'NONE');
+        formData.append('treasurerName', treasurerName);
         // formData.append('auditorRemark', 'PENDING');
-        
+        const generatedPdfBlob = await generateAndSetPdf();
         const response = await axios.post('http://localhost:8001/transaction/save', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -461,8 +469,12 @@ const styles = StyleSheet.create({
         
         setTransactionId(response.data.transactionId);
         console.log("TRANSACTION ID:" +transactionId)
-        generateAndSetPdf();
-        handleSendPdf();
+        
+        
+        if (generatedPdfBlob) {
+          await handleSendPdf(generatedPdfBlob); // Pass the generated PDF blob
+        }
+        
         handleModalShow();
         clearForm();
       } else {

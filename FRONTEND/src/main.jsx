@@ -24,7 +24,7 @@ const allowedRoles = {
     "/Officer": ["ADMIN"],
     "/Transaction": ["TREASURER"],
     "/Report": ["AUDITOR"],
-    "/Masterlist": ["TREASURER"],
+    "/Masterlist": ["ADMIN"],
     "/Profile": ["ADMIN", "TREASURER", "AUDITOR", "OTHER_OFFICER"],
 };
 

@@ -25,19 +25,19 @@ function Transaction() {
                 <MainGreetings />
                
                <Row>
-               <Col sm={8}>
+               <Col md={8}>
                <Balances/>
                 </Col>
-                <Col sm={4}>
+                <Col md={4}>
                 <PriceForm/>
                 </Col>
                </Row>
                 <div className="container-fluid ">
                     <Row>
-                        <Col sm={8}>
+                        <Col lg={8}>
                             <TransactionTable />
                         </Col>
-                        <Col sm={4}>
+                        <Col lg={4}>
                             <TransactionForm />
                         </Col>
                     </Row>

@@ -12,16 +12,40 @@ import TransactionVersionModal from '../modals/transactionVersionModal';
 import Balances from '../cards/balances.jsx';
 import CurrentPrice from '../counter/currentPrice.jsx';
 import VoidTransactions from './voidTransactions.jsx';
+import PriceUpdates from "./priceUpdates.jsx";
+import VoidTransactionsButton from '../modals/voidTransactionsButton.jsx';
 
 const ReportTable = () => {
   const [data, setData] = useState([]);
   const [searchText, setSearchText] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [showTransactionVersionModal, setShowTransactionVersionModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [selectedTransactionType, setSelectedTransactionType] = useState('all');
   const [selectedAllocationType, setSelectedAllocationType] = useState('all');
+  const [selectedParticular, setSelectedParticular] = useState('all');
+
+
+  const getInitialStartDate = () => {
+    const lastYear = new Date().getFullYear() - 1;
+    return `${lastYear}-01-01`;
+  };
+
+  const getInitialEndDate = () => {
+    const currentYear = new Date().getFullYear();
+    return `${currentYear}-12-31`;
+  };
+
+  const [startDate, setStartDate] = useState(getInitialStartDate());
+  const [endDate, setEndDate] = useState(getInitialEndDate());
+
+
+  useEffect(() => {
+    fetchData();
+  }, [startDate, endDate, selectedTransactionType, selectedAllocationType, selectedParticular]);
+  
+
+
+  
   const handleOpenTransactionVersionModal = (row) => {
     setSelectedRow(row);
     
@@ -32,17 +56,72 @@ const ReportTable = () => {
     setShowTransactionVersionModal(false);
   };
 
+
+
+  const handleParticularChange = (e) => {
+    setSelectedParticular(e.target.value);
+  };
+  
+
+  const outflowParticularOptions = [
+    'all',
+    'FOOD EXPENSE',
+    'SUPPLIES EXPENSE',
+    'TRANSPORTATION EXPENSE',
+    'RENT EXPENSE',
+    'REPRESENTATION EXPENSE',
+    'MEDICAL EXPENSE',
+    'COMMUNICATION EXPENSE',
+    'MISCELLANEOUS EXPENSE',
+    'TOKEN EXPENSE',
+  ];
+  const allParticularOptions = [
+    'all',
+  ];
+
+  const [particularOptions, setParticularOptions] = useState(allParticularOptions);
+
+  
   const handleTransactionTypeChange = (e) => {
     setSelectedTransactionType(e.target.value);
+
+    if (e.target.value === 'INFLOW') {
+      if (selectedAllocationType === 'COLLECTION') {
+        setParticularOptions(['all', 'MEMBERSHIP_FEE']);
+      } else if (selectedAllocationType === 'IGP') {
+        setParticularOptions(['all', 'ORGANIZATION_SHIRT']);
+      } else if (selectedAllocationType === 'DONATION') {
+        setParticularOptions(['all']);
+      } else {
+        setParticularOptions(allParticularOptions);
+      }
+    }
+    else if (e.target.value === 'OUTFLOW') {
+      setParticularOptions(outflowParticularOptions);
+    } else {
+      setParticularOptions(allParticularOptions);
+    }
   };
 
   const handleAllocationTypeChange = (e) => {
     setSelectedAllocationType(e.target.value);
-  };
 
-  useEffect(() => {
-    fetchData();
-  }, [startDate, endDate, selectedTransactionType, selectedAllocationType]);
+    if (selectedTransactionType === 'INFLOW') {
+      if (e.target.value === 'COLLECTION') {
+        setParticularOptions(['all', 'MEMBERSHIP_FEE']);
+      } else if (e.target.value === 'IGP') {
+        setParticularOptions(['all', 'ORGANIZATION_SHIRT']);
+      } else if (e.target.value === 'DONATION') {
+        setParticularOptions(['all']);
+      } else {
+        setParticularOptions(allParticularOptions);
+      }
+    } else if (selectedTransactionType === 'OUTFLOW') {
+      setParticularOptions(outflowParticularOptions);
+    } else {
+      setParticularOptions(allParticularOptions);
+    }
+  };
 
 
   const fetchData = async () => {
@@ -52,13 +131,15 @@ const ReportTable = () => {
 
       if (selectedAllocationType == 'all' && selectedTransactionType != 'all' && startDate && endDate) {
         url = `http://localhost:8001/transaction/findByDateRange?startDate=${startDate}&endDate=${endDate}&transactionTypes=${selectedTransactionType}`;
-        
       } else if (selectedAllocationType != 'all' && selectedTransactionType == 'all' && startDate && endDate) {
         url = `http://localhost:8001/transaction/findByDateRange?startDate=${startDate}&endDate=${endDate}&allocationTypes=${selectedAllocationType}`;
       } else if (selectedAllocationType != 'all' && selectedTransactionType != 'all' && startDate && endDate) {
         url = `http://localhost:8001/transaction/findByDateRange?startDate=${startDate}&endDate=${endDate}&allocationTypes=${selectedAllocationType}&transactionTypes=${selectedTransactionType}`;
       } else {
         url = `http://localhost:8001/transaction/findByDateRange?startDate=${startDate}&endDate=${endDate}`;
+      }
+      if (selectedParticular != 'all') {
+        url += `&particular=${selectedParticular}`;
       }
       console.log(selectedTransactionType);
       console.log('API Request URL:', url); // Add this line to log the API request URL
@@ -78,21 +159,41 @@ const ReportTable = () => {
     setEndDate(e.target.value);
   };
 
+ 
   const handleExcelExport = () => {
+    let url;
+  
     if (startDate && endDate) {
       // Include new parameters for allocationTypes and transactionTypes
-       if (selectedAllocationType === 'all' && selectedTransactionType !== 'all' && startDate && endDate) {
-        window.location.href  = `http://localhost:8001/transaction/groupReport?startDate=${startDate}&endDate=${endDate}&transactionTypes=${selectedTransactionType}`;
-      } else if (selectedAllocationType !== 'all' && selectedTransactionType === 'all' && startDate && endDate) {
-        window.location.href  = `http://localhost:8001/transaction/groupReport?startDate=${startDate}&endDate=${endDate}&allocationTypes=${selectedAllocationType}`;
-      } else if (selectedAllocationType === 'all' && selectedTransactionType === 'all' && startDate && endDate) {
-        window.location.href  = `http://localhost:8001/transaction/groupReport?startDate=${startDate}&endDate=${endDate}`;
-      } else if(selectedAllocationType !== 'all' && selectedTransactionType !== 'all' && startDate && endDate){
-        window.location.href  = `http://localhost:8001/transaction/groupReport?startDate=${startDate}&endDate=${endDate}`;
+      if (selectedAllocationType === 'all' && selectedTransactionType !== 'all') {
+        url = `http://localhost:8001/transaction/groupReport?startDate=${startDate}&endDate=${endDate}&transactionTypes=${selectedTransactionType}`;
+      } else if (selectedAllocationType !== 'all' && selectedTransactionType === 'all') {
+        url = `http://localhost:8001/transaction/groupReport?startDate=${startDate}&endDate=${endDate}&allocationTypes=${selectedAllocationType}`;
+      } else if (selectedAllocationType !== 'all' && selectedTransactionType !== 'all') {
+        url = `http://localhost:8001/transaction/groupReport?startDate=${startDate}&endDate=${endDate}&allocationTypes=${selectedAllocationType}&transactionTypes=${selectedTransactionType}`;
+      } else {
+        url = `http://localhost:8001/transaction/groupReport?startDate=${startDate}&endDate=${endDate}`;
       }
+  
+      // Append particular parameter if it's not 'all'
+      if (selectedParticular !== 'all') {
+        url += `&particular=${selectedParticular}`;
+      }
+  
+      // Redirect to the generated URL
+      window.location.href = url;
     } else {
       console.error('Please select start and end dates');
     }
+  };
+  const handleClear = () => {
+    setSelectedTransactionType('all');
+    setSelectedAllocationType('all');
+    setSelectedParticular('all');
+    setStartDate(getInitialStartDate());
+    setEndDate(getInitialEndDate());
+
+    fetchData();
   };
 
   const formatTransactionDate = (row) => {
@@ -104,7 +205,7 @@ const ReportTable = () => {
     });
   };
 
-
+  
 
   const styles = StyleSheet.create({
     page: {
@@ -282,8 +383,9 @@ const ReportTable = () => {
 
   return (
     <div className='mt-0 p-3 pt-4 rounded-4 container-bg'>
-      <h4 className='d-flex justify-content-center mb-4'>Financial Report</h4>
+      <h4 className='d-flex justify-content-center mb-4'>Report</h4>
 <Row>
+ 
   <div className="">
   <Balances/>
   </div>
@@ -294,6 +396,22 @@ const ReportTable = () => {
         <h6 className='px-2'>Generate Report:</h6>
   </Card.Header>
       <Row className=" p-4 my-2">
+      <Col lg="6">
+          <Form.Group controlId='startDate'>
+            <InputGroup>
+              <InputGroup.Text className="my-2">Start Date:</InputGroup.Text>
+              <FormControl type='date' value={startDate} onChange={handleStartDateChange} />
+            </InputGroup>
+          </Form.Group>
+        </Col>
+        <Col lg="6">
+          <Form.Group controlId='endDate'>
+            <InputGroup>
+              <InputGroup.Text className="my-2">End Date:</InputGroup.Text>
+              <FormControl type='date' value={endDate} onChange={handleEndDateChange} />
+            </InputGroup>
+          </Form.Group>
+        </Col>
      <Col lg="6">
     <Form.Group controlId='transactionType'>
       <InputGroup  className='my-2'>
@@ -320,24 +438,25 @@ const ReportTable = () => {
       </InputGroup>
     </Form.Group>
   </Col>
-        <Col lg="6">
-          <Form.Group controlId='startDate'>
-            <InputGroup>
-              <InputGroup.Text className="my-2">Start Date:</InputGroup.Text>
-              <FormControl type='date' value={startDate} onChange={handleStartDateChange} />
-            </InputGroup>
-          </Form.Group>
-        </Col>
-        <Col lg="6">
-          <Form.Group controlId='endDate'>
-            <InputGroup>
-              <InputGroup.Text className="my-2">End Date:</InputGroup.Text>
-              <FormControl type='date' value={endDate} onChange={handleEndDateChange} />
-            </InputGroup>
-          </Form.Group>
-        </Col>
-        <Col lg="12" className="d-flex justify-content-center">
-          <Button variant='success' className="my-2" onClick={handleExcelExport}>
+  <Col lg="6">
+    <Form.Group controlId='particular'>
+      <InputGroup className='my-2'>
+        <InputGroup.Text>Particular:</InputGroup.Text>
+        <Form.Control as='select' value={selectedParticular} onChange={handleParticularChange}>
+          {particularOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </Form.Control>
+      </InputGroup>
+    </Form.Group>
+  </Col>
+        <Col lg="6" className="d-flex justify-content-center">
+        <Button variant='secondary' type="clear" className="my-2 mx-2 w-100" onClick={handleClear}>
+            Clear
+          </Button>
+          <Button variant='success' className="my-2 w-100" onClick={handleExcelExport}>
             Excel
           </Button>
         </Col>
@@ -346,9 +465,15 @@ const ReportTable = () => {
    
   </Col>
   <Col lg="6">
-    
-     
-      <CurrentPrice/>
+    <Row>
+    <Col lg="6">
+     <CurrentPrice/>
+     </Col>
+     <Col lg="6">
+     <PriceUpdates/>
+     </Col>
+    </Row>
+   
       <VoidTransactions/>
    
   </Col>

@@ -4,6 +4,7 @@ import DataTable from 'react-data-table-component';
 import  { Form, Button, Container, Modal, Alert, Card, Col, Row } from 'react-bootstrap';
 import * as Icon from 'react-bootstrap-icons';
 import '../../assets/css/global.css';
+import VoidTransactionsButton from '../modals/voidTransactionsButton';
 
 const TransactionTable = () => {
   const [data, setData] = useState([]);
@@ -259,10 +260,15 @@ const TransactionTable = () => {
 
      <Container className='form-container mt-1 p-3 pt-4 rounded-4 container-bg'>
     <h4 className='d-flex justify-content-center'>Breakdown of Cash Inflows and Outflows</h4>
-   
+   <Row>
+    <Col lg="12">
     <Form.Group controlId='search' className='my-3'>
         <Form.Control type='text' placeholder='Search...' value={searchText} onChange={(e) => setSearchText(e.target.value)} />
     </Form.Group>
+    </Col>
+    
+   </Row>
+   
     <DataTable
         columns={columns}
         data={filteredData}
@@ -274,6 +280,11 @@ const TransactionTable = () => {
         fixedHeader={true}
         fixedHeaderScrollHeight="450px"
     />
+     <Col lg="12" className='d-flex justify-content-end w-100'>
+      <div className='w-20'>
+      <VoidTransactionsButton/>
+      </div>
+    </Col>
   <Modal show={showModal} onHide={handleCloseModal} className='modal-lg'>
     <Modal.Header className="container-bg2" closeButton style={{ color: 'white' }}>
       <Modal.Title><>Transaction ID:  {selectedRow && (selectedRow.transactionId)}</></Modal.Title>
